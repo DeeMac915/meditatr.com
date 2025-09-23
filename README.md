@@ -6,10 +6,11 @@ Can we keep the communication via Microsoft Teams, Discord, Telegram, Email and 
 I'm sure it would be more convenient for the future development.
 
 Here is my contact info.
-Microsoft Teams: https://teams.live.com/l/invite/FEAPNqm1GingmetOwQ?v=g1
-Discord: angeldev_79815
-Telegram: @afoxtech
-Email: afox.tech999@gmail.com
+
+-   Microsoft Teams: https://teams.live.com/l/invite/FEAPNqm1GingmetOwQ?v=g1
+-   Discord: angeldev_79815
+-   Telegram: @afoxtech
+-   Email: afox.tech999@gmail.com
 
 Could you please send me a DM?
 I look forward to hearing from you soon.
@@ -276,10 +277,6 @@ meditation-mvp/
 ## 📄 License
 
 This project is licensed under the MIT License.
-
-## 🆘 Support
-
-For support, email support@meditationmvp.com or create an issue in the repository.
 
 ---
 
