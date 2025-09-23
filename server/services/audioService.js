@@ -1,0 +1,194 @@
+const { ElevenLabs } = require("elevenlabs");
+const AWS = require("aws-sdk");
+const ffmpeg = require("fluent-ffmpeg");
+const fs = require("fs");
+const path = require("path");
+const { v4: uuidv4 } = require("uuid");
+const fetch = require("node-fetch");
+
+// Configure AWS S3
+const s3 = new AWS.S3({
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    region: process.env.AWS_REGION,
+});
+
+// Initialize ElevenLabs
+const elevenlabs = new ElevenLabs({
+    apiKey: process.env.ELEVENLABS_API_KEY,
+});
+
+// Voice IDs for different genders
+const VOICE_IDS = {
+    male: "pNInz6obpgDQGcFmaJgB", // Adam
+    female: "EXAVITQu4vr4xnSDxMaL", // Bella
+};
+
+// Background audio options
+const BACKGROUND_AUDIO = {
+    nature: "https://your-s3-bucket.s3.amazonaws.com/background-audio/nature-sounds.mp3",
+    ocean: "https://your-s3-bucket.s3.amazonaws.com/background-audio/ocean-waves.mp3",
+    rain: "https://your-s3-bucket.s3.amazonaws.com/background-audio/rain-sounds.mp3",
+    forest: "https://your-s3-bucket.s3.amazonaws.com/background-audio/forest-sounds.mp3",
+    "528-hz":
+        "https://your-s3-bucket.s3.amazonaws.com/background-audio/528-hz-tone.mp3",
+    sleep: "https://your-s3-bucket.s3.amazonaws.com/background-audio/sleep-tones.mp3",
+};
+
+/**
+ * Generate voice from text using ElevenLabs
+ */
+const generateVoice = async (text, voicePreference = "female") => {
+    try {
+        const voiceId = VOICE_IDS[voicePreference];
+
+        if (!voiceId) {
+            throw new Error(`Invalid voice preference: ${voicePreference}`);
+        }
+
+        // Generate audio using ElevenLabs
+        const audioBuffer = await elevenlabs.generate({
+            voice: voiceId,
+            text: text,
+            model_id: "eleven_monolingual_v1",
+            voice_settings: {
+                stability: 0.5,
+                similarity_boost: 0.5,
+                style: 0.0,
+                use_speaker_boost: true,
+            },
+        });
+
+        // Convert buffer to stream
+        const audioStream = Buffer.from(audioBuffer);
+
+        // Upload to S3
+        const fileName = `voice/${uuidv4()}.mp3`;
+        const uploadParams = {
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: fileName,
+            Body: audioStream,
+            ContentType: "audio/mpeg",
+            ACL: "public-read",
+        };
+
+        const uploadResult = await s3.upload(uploadParams).promise();
+
+        return uploadResult.Location;
+    } catch (error) {
+        console.error("Voice generation error:", error);
+        throw new Error("Failed to generate voice");
+    }
+};
+
+/**
+ * Mix voice with background audio using FFMPEG
+ */
+const mixAudio = async (voiceUrl, backgroundType, duration) => {
+    try {
+        const tempDir = path.join(__dirname, "../../temp");
+        if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
+        }
+
+        const voiceFile = path.join(tempDir, `voice-${uuidv4()}.mp3`);
+        const backgroundFile = path.join(tempDir, `background-${uuidv4()}.mp3`);
+        const outputFile = path.join(tempDir, `final-${uuidv4()}.mp3`);
+
+        // Download voice file
+        const voiceResponse = await fetch(voiceUrl);
+        const voiceBuffer = await voiceResponse.arrayBuffer();
+        fs.writeFileSync(voiceFile, Buffer.from(voiceBuffer));
+
+        // Download background audio
+        const backgroundUrl = BACKGROUND_AUDIO[backgroundType];
+        if (!backgroundUrl) {
+            throw new Error(`Invalid background audio type: ${backgroundType}`);
+        }
+
+        const backgroundResponse = await fetch(backgroundUrl);
+        const backgroundBuffer = await backgroundResponse.arrayBuffer();
+        fs.writeFileSync(backgroundFile, Buffer.from(backgroundBuffer));
+
+        // Mix audio using FFMPEG
+        await new Promise((resolve, reject) => {
+            ffmpeg()
+                .input(voiceFile)
+                .input(backgroundFile)
+                .complexFilter([
+                    "[0:a]volume=1.0[voice]",
+                    "[1:a]volume=0.3,aloop=loop=-1:size=2e+09[bg]",
+                    "[voice][bg]amix=inputs=2:duration=first:dropout_transition=2[out]",
+                ])
+                .outputOptions(["-map", "[out]"])
+                .output(outputFile)
+                .on("end", resolve)
+                .on("error", reject)
+                .run();
+        });
+
+        // Upload final audio to S3
+        const finalAudioBuffer = fs.readFileSync(outputFile);
+        const fileName = `meditations/${uuidv4()}.mp3`;
+
+        const uploadParams = {
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: fileName,
+            Body: finalAudioBuffer,
+            ContentType: "audio/mpeg",
+            ACL: "public-read",
+        };
+
+        const uploadResult = await s3.upload(uploadParams).promise();
+
+        // Clean up temporary files
+        [voiceFile, backgroundFile, outputFile].forEach((file) => {
+            if (fs.existsSync(file)) {
+                fs.unlinkSync(file);
+            }
+        });
+
+        return uploadResult.Location;
+    } catch (error) {
+        console.error("Audio mixing error:", error);
+        throw new Error("Failed to mix audio");
+    }
+};
+
+/**
+ * Get audio file duration
+ */
+const getAudioDuration = (filePath) => {
+    return new Promise((resolve, reject) => {
+        ffmpeg.ffprobe(filePath, (err, metadata) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(metadata.format.duration);
+            }
+        });
+    });
+};
+
+/**
+ * Get audio file size
+ */
+const getAudioFileSize = (url) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const response = await fetch(url, { method: "HEAD" });
+            const contentLength = response.headers.get("content-length");
+            resolve(parseInt(contentLength) || 0);
+        } catch (error) {
+            reject(error);
+        }
+    });
+};
+
+module.exports = {
+    generateVoice,
+    mixAudio,
+    getAudioDuration,
+    getAudioFileSize,
+    BACKGROUND_AUDIO,
+};
