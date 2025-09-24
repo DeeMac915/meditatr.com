@@ -1,6 +1,6 @@
 # For the better communication
 
-Hello Debbie, how are you?
+Hello, how are you?
 
 Can we keep the communication via Microsoft Teams, Discord, Telegram, Email and so on?
 I'm sure it would be more convenient for the future development.
