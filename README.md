@@ -36,6 +36,18 @@ A full-stack web application that allows users to create deeply personalized gui
 -   **Pay-Per-Meditation**: Stripe and PayPal integration ($4.99 per meditation)
 -   **Admin Dashboard**: Track usage, delivery stats, API usage, and payments
 
+## 🎯 User Flow
+
+1. **Sign Up/Login**: User creates account or signs in
+2. **Create Meditation**: Fill out detailed form with goals, mood, challenges, etc.
+3. **AI Script Generation**: System generates personalized meditation script
+4. **Edit & Customize**: User can edit script or request AI rewrites
+5. **Payment**: Pay $4.99 for meditation processing
+6. **Audio Generation**: Script converted to voice using ElevenLabs
+7. **Audio Mixing**: Voice mixed with selected background audio
+8. **Delivery**: Final audio sent via email, SMS, and available in browser
+9. **Library**: Meditation saved to user's personal library
+
 ## 🛠 Technology Stack
 
 ### Frontend
@@ -215,18 +227,6 @@ meditation-mvp/
 -   `GET /api/admin/meditations` - Get all meditations
 -   `GET /api/admin/payments` - Get all payments
 
-## 🎯 User Flow
-
-1. **Sign Up/Login**: User creates account or signs in
-2. **Create Meditation**: Fill out detailed form with goals, mood, challenges, etc.
-3. **AI Script Generation**: System generates personalized meditation script
-4. **Edit & Customize**: User can edit script or request AI rewrites
-5. **Payment**: Pay $4.99 for meditation processing
-6. **Audio Generation**: Script converted to voice using ElevenLabs
-7. **Audio Mixing**: Voice mixed with selected background audio
-8. **Delivery**: Final audio sent via email, SMS, and available in browser
-9. **Library**: Meditation saved to user's personal library
-
 ## 🔐 Security Features
 
 -   Firebase Authentication for secure user management
@@ -236,6 +236,7 @@ meditation-mvp/
 -   Helmet for security headers
 -   Input validation and sanitization
 -   Secure payment processing with Stripe/PayPal
+-   Never commit environment variables (.env) to GitHub
 
 ## 📱 Responsive Design
 
@@ -246,13 +247,19 @@ meditation-mvp/
 
 ## 🚀 Deployment
 
-### Frontend (Vercel)
+### Local Development
+
+Both frontend and backend can be run locally for development using `npm run dev` (see Getting Started section above).
+
+### Production Deployment
+
+#### Frontend (Vercel)
 
 1. Connect your GitHub repository to Vercel
 2. Set environment variables in Vercel dashboard
 3. Deploy automatically on push to main branch
 
-### Backend (AWS/Heroku)
+#### Backend (AWS/Heroku)
 
 1. Set up MongoDB Atlas for production database
 2. Configure environment variables
