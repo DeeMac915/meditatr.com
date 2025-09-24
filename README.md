@@ -276,7 +276,13 @@ meditation-mvp/
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+© 2025 Eco Tek Pty Ltd. All rights reserved.
+
+This project is proprietary software developed under contract. All intellectual property rights, including but not limited to the source code, design, and documentation, are owned exclusively by Eco Tek Pty Ltd.
+
+No part of this project may be copied, modified, distributed, or used for any purpose without prior written permission from Eco Tek Pty Ltd.
+
+Third-party libraries and frameworks used in this project remain subject to their original open-source licenses.
 
 ---
 
