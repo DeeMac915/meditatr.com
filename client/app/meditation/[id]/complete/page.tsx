@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useAuth } from "../../../../contexts/AuthContext";
-import { meditationAPI } from "../../../../lib/api";
+import { useAuth } from "@/contexts/AuthContext";
+import { meditationAPI } from "@/lib/api";
 import {
     CheckCircle,
     Download,
@@ -15,11 +15,28 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+interface Meditation {
+    _id: string;
+    title: string;
+    inputData: {
+        duration: number;
+        voicePreference: string;
+        backgroundAudio: string;
+    };
+    audio?: {
+        finalAudioUrl: string;
+    };
+    delivery?: {
+        emailSent: boolean;
+        smsSent: boolean;
+    };
+}
+
 export default function CompletePage() {
-    const { id } = useParams();
+    const { id } = useParams<{ id: string }>();
     const router = useRouter();
     const { user } = useAuth();
-    const [meditation, setMeditation] = useState(null);
+    const [meditation, setMeditation] = useState<Meditation | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {

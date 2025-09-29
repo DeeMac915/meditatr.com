@@ -68,7 +68,7 @@ const validatePaymentAmount = (amount) => {
     return typeof amount === "number" && amount > 0 && amount <= 1000;
 };
 
-module.exports = {
+export {
     validateEmail,
     validatePhoneNumber,
     validateMeditationInput,

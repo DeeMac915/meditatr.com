@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useAuth } from "../../../../contexts/AuthContext";
-import { meditationAPI, paymentAPI } from "../../../../lib/api";
+import { useAuth } from "@/contexts/AuthContext";
+import { meditationAPI, paymentAPI } from "@/lib/api";
 import {
     CreditCard,
     Smartphone,
@@ -15,11 +15,22 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+interface Meditation {
+    _id: string;
+    title: string;
+    inputData: {
+        goal: string;
+        duration: number;
+        voicePreference: string;
+        backgroundAudio: string;
+    };
+}
+
 export default function PaymentPage() {
-    const { id } = useParams();
+    const { id } = useParams<{ id: string }>();
     const router = useRouter();
     const { user } = useAuth();
-    const [meditation, setMeditation] = useState(null);
+    const [meditation, setMeditation] = useState<Meditation | null>(null);
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState("stripe");

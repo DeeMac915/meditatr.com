@@ -1,10 +1,10 @@
-const express = require("express");
-const OpenAI = require("openai");
-const { authenticateToken } = require("../middleware/auth");
-const Meditation = require("../models/Meditation");
-const User = require("../models/User");
-const { generateVoice, mixAudio } = require("../services/audioService");
-const { sendEmail, sendSMS } = require("../services/deliveryService");
+import express from "express";
+import OpenAI from "openai";
+import { authenticateToken } from "../middleware/auth.js";
+import Meditation from "../models/Meditation.js";
+import User from "../models/User.js";
+import { generateVoice, mixAudio } from "../services/audioService.js";
+import { sendEmail, sendSMS } from "../services/deliveryService.js";
 
 const router = express.Router();
 
@@ -357,4 +357,4 @@ router.get("/:id", authenticateToken, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

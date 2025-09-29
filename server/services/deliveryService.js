@@ -1,5 +1,5 @@
-const sgMail = require("@sendgrid/mail");
-const twilio = require("twilio");
+import sgMail from "@sendgrid/mail";
+import twilio from "twilio";
 
 // Configure SendGrid
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -322,8 +322,4 @@ const sendWelcomeEmail = async (email, name) => {
     }
 };
 
-module.exports = {
-    sendEmail,
-    sendSMS,
-    sendWelcomeEmail,
-};
+export { sendEmail, sendSMS, sendWelcomeEmail };

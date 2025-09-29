@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "../../contexts/AuthContext";
-import { meditationAPI } from "../../lib/api";
+import { useAuth } from "@/contexts/AuthContext";
+import { meditationAPI } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import {
     Brain,
@@ -17,11 +17,27 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+interface FormData {
+    goal: string;
+    mood: string;
+    challenges: string;
+    affirmations: string;
+    duration: number;
+    voicePreference: string;
+    backgroundAudio: string;
+}
+
+interface BackgroundAudioOption {
+    value: string;
+    label: string;
+    description: string;
+}
+
 export default function CreateMeditationPage() {
     const { user } = useAuth();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<FormData>({
         goal: "",
         mood: "",
         challenges: "",
@@ -50,7 +66,7 @@ export default function CreateMeditationPage() {
         "Calm",
     ];
 
-    const backgroundAudioOptions = [
+    const backgroundAudioOptions: BackgroundAudioOption[] = [
         {
             value: "nature",
             label: "Nature Sounds",
@@ -79,27 +95,31 @@ export default function CreateMeditationPage() {
         },
     ];
 
-    const handleChange = (e) => {
+    const handleChange = (
+        e: React.ChangeEvent<
+            HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+        >
+    ) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
             ...prev,
-            [name]: value,
+            [name]: name === "duration" ? parseInt(value) : value,
         }));
     };
 
-    const handleMoodSelect = (mood) => {
+    const handleMoodSelect = (mood: string) => {
         setFormData((prev) => ({
             ...prev,
             mood: prev.mood === mood ? "" : mood,
         }));
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!user) {
             toast.error("Please sign in to create a meditation");
-            router.push("/auth/login");
+            router.push("/auth/signin");
             return;
         }
 
@@ -120,7 +140,7 @@ export default function CreateMeditationPage() {
             const response = await meditationAPI.generateScript(formData);
             toast.success("Meditation script generated successfully!");
             router.push(`/meditation/${response.data.meditation.id}/edit`);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Script generation error:", error);
             toast.error(
                 error.response?.data?.error ||
@@ -142,7 +162,7 @@ export default function CreateMeditationPage() {
                         Please sign in to create your personalized meditation
                     </p>
                     <button
-                        onClick={() => router.push("/auth/login")}
+                        onClick={() => router.push("/auth/signin")}
                         className="btn-primary"
                     >
                         Sign In

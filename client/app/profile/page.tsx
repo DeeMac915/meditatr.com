@@ -1,16 +1,26 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { User, Mail, Phone, Save, ArrowLeft, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
+
+interface FormData {
+    name: string;
+    phoneNumber: string;
+    preferences: {
+        defaultVoice: string;
+        defaultDuration: number;
+        defaultBackgroundAudio: string;
+    };
+}
 
 export default function ProfilePage() {
     const { user, userProfile, updateUserProfile } = useAuth();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<FormData>({
         name: "",
         phoneNumber: "",
         preferences: {
@@ -38,15 +48,18 @@ export default function ProfilePage() {
         }
     }, [userProfile]);
 
-    const handleChange = (e) => {
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    ) => {
         const { name, value } = e.target;
         if (name.startsWith("preferences.")) {
-            const prefKey = name.split(".")[1];
+            const prefKey = name.split(".")[1] as keyof FormData["preferences"];
             setFormData((prev) => ({
                 ...prev,
                 preferences: {
                     ...prev.preferences,
-                    [prefKey]: value,
+                    [prefKey]:
+                        prefKey === "defaultDuration" ? parseInt(value) : value,
                 },
             }));
         } else {
@@ -57,7 +70,7 @@ export default function ProfilePage() {
         }
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
 
@@ -83,7 +96,7 @@ export default function ProfilePage() {
                         Sign in to view and edit your profile
                     </p>
                     <button
-                        onClick={() => router.push("/auth/login")}
+                        onClick={() => router.push("/auth/signin")}
                         className="btn-primary"
                     >
                         Sign In
@@ -163,7 +176,7 @@ export default function ProfilePage() {
                                         <input
                                             id="email"
                                             type="email"
-                                            value={user.email}
+                                            value={user.email || ""}
                                             disabled
                                             className="form-input pl-10 bg-gray-50 text-gray-500"
                                         />

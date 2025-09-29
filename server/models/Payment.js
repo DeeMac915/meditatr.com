@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const paymentSchema = new mongoose.Schema({
     userId: {
@@ -55,4 +55,4 @@ paymentSchema.pre("save", function (next) {
 paymentSchema.index({ userId: 1, createdAt: -1 });
 paymentSchema.index({ externalPaymentId: 1 });
 
-module.exports = mongoose.model("Payment", paymentSchema);
+export default mongoose.model("Payment", paymentSchema);

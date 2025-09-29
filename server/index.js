@@ -1,14 +1,14 @@
-const express = require("express");
-const cors = require("cors");
-const helmet = require("helmet");
-const rateLimit = require("express-rate-limit");
-const connectDB = require("./config/database");
-require("dotenv").config();
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import connectDB from "./config/database.js";
+import "dotenv/config";
 
-const authRoutes = require("./routes/auth");
-const meditationRoutes = require("./routes/meditation");
-const paymentRoutes = require("./routes/payment");
-const adminRoutes = require("./routes/admin");
+import authRoutes from "./routes/auth.js";
+import meditationRoutes from "./routes/meditation.js";
+import paymentRoutes from "./routes/payment.js";
+import adminRoutes from "./routes/admin.js";
 
 const app = express();
 const PORT = process.env.SERVER_PORT || 5000;

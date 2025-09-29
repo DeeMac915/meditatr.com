@@ -1,5 +1,5 @@
-const { auth } = require("../config/firebase");
-const User = require("../models/User");
+import { auth } from "../config/firebase.js";
+import User from "../models/User.js";
 
 const authenticateToken = async (req, res, next) => {
     try {
@@ -40,4 +40,4 @@ const requireAuth = (req, res, next) => {
     next();
 };
 
-module.exports = { authenticateToken, requireAuth };
+export { authenticateToken, requireAuth };

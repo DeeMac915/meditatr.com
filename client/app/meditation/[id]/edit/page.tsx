@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useAuth } from "../../../../contexts/AuthContext";
-import { meditationAPI } from "../../../../lib/api";
+import { useAuth } from "@/contexts/AuthContext";
+import { meditationAPI } from "@/lib/api";
 import {
     Edit3,
     RotateCcw,
@@ -15,16 +15,35 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+interface Meditation {
+    _id: string;
+    title: string;
+    inputData: {
+        goal: string;
+        mood: string;
+        duration: number;
+        voicePreference: string;
+    };
+    script: {
+        final: string;
+    };
+}
+
+interface RewriteOptions {
+    tone: string;
+    length: string;
+}
+
 export default function EditMeditationPage() {
-    const { id } = useParams();
+    const { id } = useParams<{ id: string }>();
     const router = useRouter();
     const { user } = useAuth();
-    const [meditation, setMeditation] = useState(null);
+    const [meditation, setMeditation] = useState<Meditation | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [rewriting, setRewriting] = useState(false);
     const [script, setScript] = useState("");
-    const [rewriteOptions, setRewriteOptions] = useState({
+    const [rewriteOptions, setRewriteOptions] = useState<RewriteOptions>({
         tone: "",
         length: "",
     });

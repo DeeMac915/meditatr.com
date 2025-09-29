@@ -1,4 +1,5 @@
-const AWS = require("aws-sdk");
+import AWS from "aws-sdk";
+import fs from "fs";
 
 // Configure AWS S3
 const s3 = new AWS.S3({
@@ -17,7 +18,7 @@ const uploadBackgroundAudio = async (filePath, audioType) => {
         const uploadParams = {
             Bucket: process.env.AWS_S3_BUCKET,
             Key: fileName,
-            Body: require("fs").readFileSync(filePath),
+            Body: fs.readFileSync(filePath),
             ContentType: "audio/mpeg",
             ACL: "public-read",
         };
@@ -81,7 +82,7 @@ const getAvailableBackgroundAudio = () => {
     ];
 };
 
-module.exports = {
+export {
     uploadBackgroundAudio,
     getBackgroundAudioUrl,
     getAvailableBackgroundAudio,

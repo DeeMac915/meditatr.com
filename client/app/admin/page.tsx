@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "../../contexts/AuthContext";
-import { adminAPI } from "../../lib/api";
+import { useAuth } from "@/contexts/AuthContext";
+import { adminAPI } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import {
     Users,
@@ -16,11 +16,58 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+interface DashboardStats {
+    users: {
+        total: number;
+        newThisMonth: number;
+    };
+    meditations: {
+        total: number;
+        completed: number;
+        failed: number;
+        byStatus: Array<{
+            _id: string;
+            count: number;
+        }>;
+    };
+    revenue: {
+        total: number;
+        thisMonth: number;
+        byMonth: Array<{
+            _id: {
+                year: number;
+                month: number;
+            };
+            revenue: number;
+        }>;
+    };
+    recent: {
+        meditations: Array<{
+            _id: string;
+            title: string;
+            status: string;
+            createdAt: string;
+            userId?: {
+                name: string;
+            };
+        }>;
+        payments: Array<{
+            _id: string;
+            amount: number;
+            paymentMethod: string;
+            createdAt: string;
+            userId?: {
+                name: string;
+            };
+        }>;
+    };
+}
+
 export default function AdminDashboardPage() {
     const { user } = useAuth();
     const router = useRouter();
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState(null);
+    const [stats, setStats] = useState<DashboardStats | null>(null);
 
     useEffect(() => {
         if (user) {
@@ -32,7 +79,7 @@ export default function AdminDashboardPage() {
         try {
             const response = await adminAPI.getDashboard();
             setStats(response.data.stats);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Fetch dashboard error:", error);
             if (error.response?.status === 403) {
                 toast.error("Admin access required");
@@ -53,7 +100,7 @@ export default function AdminDashboardPage() {
                         Please sign in
                     </h2>
                     <button
-                        onClick={() => router.push("/auth/login")}
+                        onClick={() => router.push("/auth/signin")}
                         className="btn-primary"
                     >
                         Sign In

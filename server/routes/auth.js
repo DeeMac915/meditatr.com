@@ -1,7 +1,7 @@
-const express = require("express");
-const { auth } = require("../config/firebase");
-const User = require("../models/User");
-const { authenticateToken } = require("../middleware/auth");
+import express from "express";
+import { auth } from "../config/firebase.js";
+import User from "../models/User.js";
+import { authenticateToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -104,4 +104,4 @@ router.post("/sync", authenticateToken, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

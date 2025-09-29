@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const meditationSchema = new mongoose.Schema({
     userId: {
@@ -141,4 +141,4 @@ meditationSchema.pre("save", function (next) {
 meditationSchema.index({ userId: 1, createdAt: -1 });
 meditationSchema.index({ status: 1 });
 
-module.exports = mongoose.model("Meditation", meditationSchema);
+export default mongoose.model("Meditation", meditationSchema);

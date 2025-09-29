@@ -1,9 +1,11 @@
-const express = require("express");
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const paypal = require("paypal-rest-sdk");
-const { authenticateToken } = require("../middleware/auth");
-const Meditation = require("../models/Meditation");
-const Payment = require("../models/Payment");
+import express from "express";
+import Stripe from "stripe";
+import paypal from "paypal-rest-sdk";
+import { authenticateToken } from "../middleware/auth.js";
+import Meditation from "../models/Meditation.js";
+import Payment from "../models/Payment.js";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const router = express.Router();
 
@@ -387,4 +389,4 @@ router.get("/meditation/:id/status", authenticateToken, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

@@ -1,8 +1,8 @@
-const express = require("express");
-const { authenticateToken } = require("../middleware/auth");
-const User = require("../models/User");
-const Meditation = require("../models/Meditation");
-const Payment = require("../models/Payment");
+import express from "express";
+import { authenticateToken } from "../middleware/auth.js";
+import User from "../models/User.js";
+import Meditation from "../models/Meditation.js";
+import Payment from "../models/Payment.js";
 
 const router = express.Router();
 
@@ -390,4 +390,4 @@ router.get("/health", async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

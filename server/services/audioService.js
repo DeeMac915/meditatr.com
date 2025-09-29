@@ -1,10 +1,11 @@
-const { ElevenLabs } = require("elevenlabs");
-const AWS = require("aws-sdk");
-const ffmpeg = require("fluent-ffmpeg");
-const fs = require("fs");
-const path = require("path");
-const { v4: uuidv4 } = require("uuid");
-const fetch = require("node-fetch");
+import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
+import AWS from "aws-sdk";
+import ffmpeg from "fluent-ffmpeg";
+import fs from "fs";
+import path from "path";
+import { v4 as uuidv4 } from "uuid";
+// Using built-in fetch (Node.js 18+)
+// import fetch from "node-fetch";
 
 // Configure AWS S3
 const s3 = new AWS.S3({
@@ -14,7 +15,7 @@ const s3 = new AWS.S3({
 });
 
 // Initialize ElevenLabs
-const elevenlabs = new ElevenLabs({
+const elevenlabs = new ElevenLabsClient({
     apiKey: process.env.ELEVENLABS_API_KEY,
 });
 
@@ -47,8 +48,8 @@ const generateVoice = async (text, voicePreference = "female") => {
         }
 
         // Generate audio using ElevenLabs
-        const audioBuffer = await elevenlabs.generate({
-            voice: voiceId,
+        const audioBuffer = await elevenlabs.textToSpeech({
+            voice_id: voiceId,
             text: text,
             model_id: "eleven_monolingual_v1",
             voice_settings: {
@@ -185,7 +186,7 @@ const getAudioFileSize = (url) => {
     });
 };
 
-module.exports = {
+export {
     generateVoice,
     mixAudio,
     getAudioDuration,
