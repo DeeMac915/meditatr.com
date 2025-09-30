@@ -27,13 +27,13 @@ const VOICE_IDS = {
 
 // Background audio options
 const BACKGROUND_AUDIO = {
-    nature: "https://your-s3-bucket.s3.amazonaws.com/background-audio/nature-sounds.mp3",
-    ocean: "https://your-s3-bucket.s3.amazonaws.com/background-audio/ocean-waves.mp3",
-    rain: "https://your-s3-bucket.s3.amazonaws.com/background-audio/rain-sounds.mp3",
-    forest: "https://your-s3-bucket.s3.amazonaws.com/background-audio/forest-sounds.mp3",
-    "528-hz":
-        "https://your-s3-bucket.s3.amazonaws.com/background-audio/528-hz-tone.mp3",
-    sleep: "https://your-s3-bucket.s3.amazonaws.com/background-audio/sleep-tones.mp3",
+    pain_release:
+        "https://meditatrbucket.s3.us-east-1.amazonaws.com/Pain-release.mp3",
+    positive_transformation:
+        "https://meditatrbucket.s3.us-east-1.amazonaws.com/Positive+Transformation.mp3",
+    brain_power:
+        "https://meditatrbucket.s3.us-east-1.amazonaws.com/Study+Brain+Power.mp3",
+    sleep: "https://meditatrbucket.s3.us-east-1.amazonaws.com/Sleep.mp3",
 };
 
 /**
