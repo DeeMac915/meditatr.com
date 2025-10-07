@@ -4,7 +4,15 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Plus, Play, Download, Clock, Target, Heart } from "lucide-react";
+import {
+    Plus,
+    Play,
+    Download,
+    Clock,
+    Target,
+    Heart,
+    LogOut,
+} from "lucide-react";
 
 interface Meditation {
     id: string;
@@ -21,7 +29,7 @@ interface UserStats {
 }
 
 export default function Dashboard() {
-    const { user, loading } = useAuth();
+    const { user, loading, logout } = useAuth();
     const router = useRouter();
     const [meditations, setMeditations] = useState<Meditation[]>([]);
     const [userStats, setUserStats] = useState<UserStats>({
@@ -80,6 +88,15 @@ export default function Dashboard() {
         }
     };
 
+    const handleLogout = async () => {
+        try {
+            await logout();
+            router.push("/");
+        } catch (error) {
+            console.error("Logout error:", error);
+        }
+    };
+
     const getStatusColor = (status: string) => {
         switch (status) {
             case "completed":
@@ -120,21 +137,38 @@ export default function Dashboard() {
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
             <div className="bg-white shadow-sm border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                        <div className="flex-1 min-w-0">
+                            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
                                 Welcome back, {user?.displayName || "User"}!
                             </h1>
-                            <p className="text-gray-600 mt-1">
+                            <p className="text-sm sm:text-base text-gray-600 mt-1">
                                 Manage your personalized meditations and create
                                 new ones.
                             </p>
                         </div>
-                        <Link href="/create-meditation" className="btn-primary">
-                            <Plus className="w-5 h-5 mr-2" />
-                            Create New Meditation
-                        </Link>
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                            <Link
+                                href="/create-meditation"
+                                className="btn-primary flex items-center justify-center"
+                            >
+                                <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                                <span className="hidden sm:inline">
+                                    Create New Meditation
+                                </span>
+                                <span className="sm:hidden">
+                                    Create Meditation
+                                </span>
+                            </Link>
+                            <button
+                                onClick={handleLogout}
+                                className="flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
+                            >
+                                <LogOut className="w-4 h-4 mr-2" />
+                                Logout
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -234,7 +268,7 @@ export default function Dashboard() {
                             </p>
                             <Link
                                 href="/create-meditation"
-                                className="btn-primary"
+                                className="btn-primary flex items-center"
                             >
                                 <Plus className="w-5 h-5 mr-2" />
                                 Create Your First Meditation
@@ -286,11 +320,11 @@ export default function Dashboard() {
                                                 "completed" &&
                                             meditation.audioUrl ? (
                                                 <>
-                                                    <button className="btn-primary">
+                                                    <button className="btn-primary flex items-center">
                                                         <Play className="w-4 h-4 mr-2" />
                                                         Play
                                                     </button>
-                                                    <button className="btn-outline">
+                                                    <button className="btn-outline flex items-center">
                                                         <Download className="w-4 h-4 mr-2" />
                                                         Download
                                                     </button>
