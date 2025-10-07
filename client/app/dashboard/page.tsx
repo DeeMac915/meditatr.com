@@ -52,7 +52,7 @@ export default function Dashboard() {
                         Authorization: `Bearer ${token}`,
                     },
                 }),
-                fetch("/api/meditation/my-meditations", {
+                fetch("/api/meditation", {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -69,10 +69,12 @@ export default function Dashboard() {
 
             if (meditationsResponse.ok) {
                 const meditationsData = await meditationsResponse.json();
-                setMeditations(meditationsData);
+                setMeditations(meditationsData.meditations || []);
             }
         } catch (error) {
             console.error("Error fetching user data:", error);
+            // Ensure meditations is always an array
+            setMeditations([]);
         } finally {
             setLoadingData(false);
         }
@@ -183,7 +185,7 @@ export default function Dashboard() {
                                 </p>
                                 <p className="text-2xl font-bold text-gray-900">
                                     {
-                                        meditations.filter((m) => {
+                                        (meditations || []).filter((m) => {
                                             const created = new Date(
                                                 m.createdAt
                                             );
@@ -208,7 +210,7 @@ export default function Dashboard() {
                         <h2 className="text-xl font-semibold text-gray-900">
                             Your Meditations
                         </h2>
-                        {meditations.length > 0 && (
+                        {(meditations || []).length > 0 && (
                             <Link
                                 href="/meditations"
                                 className="text-primary-600 hover:text-primary-700 font-medium"
@@ -218,7 +220,7 @@ export default function Dashboard() {
                         )}
                     </div>
 
-                    {meditations.length === 0 ? (
+                    {(meditations || []).length === 0 ? (
                         <div className="text-center py-12">
                             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Heart className="w-8 h-8 text-gray-400" />
@@ -240,71 +242,78 @@ export default function Dashboard() {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {meditations.slice(0, 5).map((meditation) => (
-                                <div
-                                    key={meditation.id}
-                                    className="meditation-card"
-                                >
-                                    <div className="meditation-card-header">
-                                        <div>
-                                            <h3 className="meditation-card-title">
-                                                {meditation.goal}
-                                            </h3>
-                                            <div className="meditation-card-meta">
-                                                <span className="flex items-center">
-                                                    <Clock className="w-4 h-4 mr-1" />
-                                                    {meditation.duration}{" "}
-                                                    minutes
-                                                </span>
-                                                <span className="mx-2">•</span>
-                                                <span>
-                                                    {new Date(
-                                                        meditation.createdAt
-                                                    ).toLocaleDateString()}
-                                                </span>
+                            {(meditations || [])
+                                .slice(0, 5)
+                                .map((meditation) => (
+                                    <div
+                                        key={meditation.id}
+                                        className="meditation-card"
+                                    >
+                                        <div className="meditation-card-header">
+                                            <div>
+                                                <h3 className="meditation-card-title">
+                                                    {meditation.goal}
+                                                </h3>
+                                                <div className="meditation-card-meta">
+                                                    <span className="flex items-center">
+                                                        <Clock className="w-4 h-4 mr-1" />
+                                                        {meditation.duration}{" "}
+                                                        minutes
+                                                    </span>
+                                                    <span className="mx-2">
+                                                        •
+                                                    </span>
+                                                    <span>
+                                                        {new Date(
+                                                            meditation.createdAt
+                                                        ).toLocaleDateString()}
+                                                    </span>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <span
-                                            className={`status-badge ${getStatusColor(
-                                                meditation.status
-                                            )}`}
-                                        >
-                                            {getStatusText(meditation.status)}
-                                        </span>
-                                    </div>
-
-                                    <div className="meditation-card-actions">
-                                        {meditation.status === "completed" &&
-                                        meditation.audioUrl ? (
-                                            <>
-                                                <button className="btn-primary">
-                                                    <Play className="w-4 h-4 mr-2" />
-                                                    Play
-                                                </button>
-                                                <button className="btn-outline">
-                                                    <Download className="w-4 h-4 mr-2" />
-                                                    Download
-                                                </button>
-                                            </>
-                                        ) : meditation.status ===
-                                          "script_generated" ? (
-                                            <Link
-                                                href={`/meditation/${meditation.id}/payment`}
-                                                className="btn-primary"
+                                            <span
+                                                className={`status-badge ${getStatusColor(
+                                                    meditation.status
+                                                )}`}
                                             >
-                                                Complete Payment
-                                            </Link>
-                                        ) : (
-                                            <span className="text-gray-500 text-sm">
-                                                {meditation.status ===
-                                                "processing"
-                                                    ? "Your meditation is being processed..."
-                                                    : "Processing..."}
+                                                {getStatusText(
+                                                    meditation.status
+                                                )}
                                             </span>
-                                        )}
+                                        </div>
+
+                                        <div className="meditation-card-actions">
+                                            {meditation.status ===
+                                                "completed" &&
+                                            meditation.audioUrl ? (
+                                                <>
+                                                    <button className="btn-primary">
+                                                        <Play className="w-4 h-4 mr-2" />
+                                                        Play
+                                                    </button>
+                                                    <button className="btn-outline">
+                                                        <Download className="w-4 h-4 mr-2" />
+                                                        Download
+                                                    </button>
+                                                </>
+                                            ) : meditation.status ===
+                                              "script_generated" ? (
+                                                <Link
+                                                    href={`/meditation/${meditation.id}/payment`}
+                                                    className="btn-primary"
+                                                >
+                                                    Complete Payment
+                                                </Link>
+                                            ) : (
+                                                <span className="text-gray-500 text-sm">
+                                                    {meditation.status ===
+                                                    "processing"
+                                                        ? "Your meditation is being processed..."
+                                                        : "Processing..."}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
                         </div>
                     )}
                 </div>
@@ -356,32 +365,36 @@ export default function Dashboard() {
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">
                             Recent Activity
                         </h3>
-                        {meditations.length > 0 ? (
+                        {(meditations || []).length > 0 ? (
                             <div className="space-y-3">
-                                {meditations.slice(0, 3).map((meditation) => (
-                                    <div
-                                        key={meditation.id}
-                                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                                    >
-                                        <div>
-                                            <p className="font-medium text-gray-900 text-sm">
-                                                {meditation.goal}
-                                            </p>
-                                            <p className="text-xs text-gray-600">
-                                                {new Date(
-                                                    meditation.createdAt
-                                                ).toLocaleDateString()}
-                                            </p>
-                                        </div>
-                                        <span
-                                            className={`status-badge ${getStatusColor(
-                                                meditation.status
-                                            )} text-xs`}
+                                {(meditations || [])
+                                    .slice(0, 3)
+                                    .map((meditation) => (
+                                        <div
+                                            key={meditation.id}
+                                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                                         >
-                                            {getStatusText(meditation.status)}
-                                        </span>
-                                    </div>
-                                ))}
+                                            <div>
+                                                <p className="font-medium text-gray-900 text-sm">
+                                                    {meditation.goal}
+                                                </p>
+                                                <p className="text-xs text-gray-600">
+                                                    {new Date(
+                                                        meditation.createdAt
+                                                    ).toLocaleDateString()}
+                                                </p>
+                                            </div>
+                                            <span
+                                                className={`status-badge ${getStatusColor(
+                                                    meditation.status
+                                                )} text-xs`}
+                                            >
+                                                {getStatusText(
+                                                    meditation.status
+                                                )}
+                                            </span>
+                                        </div>
+                                    ))}
                             </div>
                         ) : (
                             <p className="text-gray-600 text-sm">
