@@ -12,6 +12,7 @@ const authenticateToken = async (req, res, next) => {
 
         // Verify the Firebase token
         const decodedToken = await auth.verifyIdToken(token);
+
         req.user = decodedToken;
 
         // Get or create user in our database
@@ -29,6 +30,11 @@ const authenticateToken = async (req, res, next) => {
         next();
     } catch (error) {
         console.error("Authentication error:", error);
+        console.error("Error details:", {
+            message: error.message,
+            code: error.code,
+            stack: error.stack?.substring(0, 200) + "...",
+        });
         return res.status(403).json({ error: "Invalid or expired token" });
     }
 };

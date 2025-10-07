@@ -62,17 +62,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Update the user's display name
             await updateProfile(user, { displayName: name });
 
-            // Create user document in Firestore via API
+            // Get the Firebase token for backend authentication
+            const token = await user.getIdToken();
+            console.log(token);
+            console.log(user.uid);
+            // Create user document in backend via API
             const response = await fetch("/api/auth/register", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ email, password, name }),
+                body: JSON.stringify({
+                    email,
+                    name,
+                    firebaseUid: user.uid,
+                }),
             });
 
             if (!response.ok) {
-                throw new Error("Failed to create user profile");
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(
+                    errorData.error || "Failed to create user profile"
+                );
             }
 
             toast.success("Account created successfully!");

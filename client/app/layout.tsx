@@ -4,7 +4,18 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "react-hot-toast";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+    subsets: ["latin"],
+    display: "swap",
+    fallback: [
+        "system-ui",
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "Segoe UI",
+        "Roboto",
+        "sans-serif",
+    ],
+});
 
 export const metadata: Metadata = {
     title: "Meditation MVP - AI-Created Guided Meditations",

@@ -75,16 +75,8 @@ router.put("/profile", authenticateToken, async (req, res) => {
 // Create or get user account
 router.post("/sync", authenticateToken, async (req, res) => {
     try {
-        let user = await User.findOne({ firebaseUid: req.user.uid });
-
-        if (!user) {
-            user = new User({
-                firebaseUid: req.user.uid,
-                email: req.user.email,
-                name: req.user.name || req.user.email.split("@")[0],
-            });
-            await user.save();
-        }
+        // The user is already created/found by the authenticateToken middleware
+        const user = req.userDoc;
 
         res.json({
             success: true,
