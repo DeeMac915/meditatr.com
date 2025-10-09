@@ -150,7 +150,7 @@ export default function Dashboard() {
                         </div>
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                             <Link
-                                href="/create-meditation"
+                                href="/create"
                                 className="btn-primary flex items-center justify-center"
                             >
                                 <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
@@ -267,8 +267,8 @@ export default function Dashboard() {
                                 started on your wellness journey.
                             </p>
                             <Link
-                                href="/create-meditation"
-                                className="btn-primary flex items-center"
+                                href="/create"
+                                className="btn-primary inline-flex items-center px-4 py-2"
                             >
                                 <Plus className="w-5 h-5 mr-2" />
                                 Create Your First Meditation
@@ -360,7 +360,7 @@ export default function Dashboard() {
                         </h3>
                         <div className="space-y-3">
                             <Link
-                                href="/create-meditation"
+                                href="/create"
                                 className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
                             >
                                 <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center mr-3">
