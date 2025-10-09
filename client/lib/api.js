@@ -11,10 +11,18 @@ const api = axios.create({
 
 // Request interceptor to add auth token
 api.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem("firebaseToken");
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+    async (config) => {
+        // Get Firebase auth token dynamically
+        const { auth } = await import("./firebase");
+        const user = auth.currentUser;
+
+        if (user) {
+            try {
+                const token = await user.getIdToken();
+                config.headers.Authorization = `Bearer ${token}`;
+            } catch (error) {
+                console.error("Failed to get Firebase token:", error);
+            }
         }
         return config;
     },
@@ -28,8 +36,7 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
-            // Token expired or invalid
-            localStorage.removeItem("firebaseToken");
+            // Token expired or invalid - redirect to sign in
             window.location.href = "/auth/signin";
         }
         return Promise.reject(error);
