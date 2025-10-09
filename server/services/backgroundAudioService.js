@@ -32,10 +32,20 @@ const uploadBackgroundAudio = async (filePath, audioType) => {
 };
 
 /**
- * Get background audio URL
+ * Get background audio URL from audioService.js
  */
+const BACKGROUND_AUDIO = {
+    pain_release:
+        "https://meditatrbucket.s3.us-east-1.amazonaws.com/Pain-release.mp3",
+    positive_transformation:
+        "https://meditatrbucket.s3.us-east-1.amazonaws.com/Positive+Transformation.mp3",
+    brain_power:
+        "https://meditatrbucket.s3.us-east-1.amazonaws.com/Study+Brain+Power.mp3",
+    sleep: "https://meditatrbucket.s3.us-east-1.amazonaws.com/Sleep.mp3",
+};
+
 const getBackgroundAudioUrl = (audioType) => {
-    return `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/background-audio/${audioType}.mp3`;
+    return BACKGROUND_AUDIO[audioType] || null;
 };
 
 /**
@@ -44,40 +54,28 @@ const getBackgroundAudioUrl = (audioType) => {
 const getAvailableBackgroundAudio = () => {
     return [
         {
-            value: "nature",
-            label: "Nature Sounds",
-            description: "Forest, birds, gentle wind",
-            url: getBackgroundAudioUrl("nature"),
+            value: "pain_release",
+            label: "Pain Release",
+            description: "Soothing tones for pain relief",
+            url: BACKGROUND_AUDIO.pain_release,
         },
         {
-            value: "ocean",
-            label: "Ocean Waves",
-            description: "Calming ocean waves",
-            url: getBackgroundAudioUrl("ocean"),
+            value: "positive_transformation",
+            label: "Positive Transformation",
+            description: "Uplifting and transformative sounds",
+            url: BACKGROUND_AUDIO.positive_transformation,
         },
         {
-            value: "rain",
-            label: "Rain Sounds",
-            description: "Gentle rainfall",
-            url: getBackgroundAudioUrl("rain"),
-        },
-        {
-            value: "forest",
-            label: "Forest Ambience",
-            description: "Deep forest sounds",
-            url: getBackgroundAudioUrl("forest"),
-        },
-        {
-            value: "528-hz",
-            label: "528 Hz Frequency",
-            description: "Healing frequency tone",
-            url: getBackgroundAudioUrl("528-hz"),
+            value: "brain_power",
+            label: "Brain Power",
+            description: "Focus and concentration enhancement",
+            url: BACKGROUND_AUDIO.brain_power,
         },
         {
             value: "sleep",
             label: "Sleep Tones",
             description: "Deep sleep sounds",
-            url: getBackgroundAudioUrl("sleep"),
+            url: BACKGROUND_AUDIO.sleep,
         },
     ];
 };

@@ -30,7 +30,7 @@ api.interceptors.response.use(
         if (error.response?.status === 401) {
             // Token expired or invalid
             localStorage.removeItem("firebaseToken");
-            window.location.href = "/auth/login";
+            window.location.href = "/auth/signin";
         }
         return Promise.reject(error);
     }

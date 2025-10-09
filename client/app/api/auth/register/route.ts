@@ -14,8 +14,8 @@ export async function POST(request: NextRequest) {
 
         // Forward the request to the backend server
         const backendUrl =
-            process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        const response = await fetch(`${backendUrl}/api/auth/sync`, {
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        const response = await fetch(`${backendUrl}/auth/sync`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

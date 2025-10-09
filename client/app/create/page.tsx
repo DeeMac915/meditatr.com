@@ -68,25 +68,19 @@ export default function CreateMeditationPage() {
 
     const backgroundAudioOptions: BackgroundAudioOption[] = [
         {
-            value: "nature",
-            label: "Nature Sounds",
-            description: "Forest, birds, gentle wind",
+            value: "pain_release",
+            label: "Pain Release",
+            description: "Soothing tones for pain relief",
         },
         {
-            value: "ocean",
-            label: "Ocean Waves",
-            description: "Calming ocean waves",
-        },
-        { value: "rain", label: "Rain Sounds", description: "Gentle rainfall" },
-        {
-            value: "forest",
-            label: "Forest Ambience",
-            description: "Deep forest sounds",
+            value: "positive_transformation",
+            label: "Positive Transformation",
+            description: "Uplifting and transformative sounds",
         },
         {
-            value: "528-hz",
-            label: "528 Hz Frequency",
-            description: "Healing frequency tone",
+            value: "brain_power",
+            label: "Brain Power",
+            description: "Focus and concentration enhancement",
         },
         {
             value: "sleep",

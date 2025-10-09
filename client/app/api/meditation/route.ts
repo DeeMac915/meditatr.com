@@ -13,8 +13,8 @@ export async function GET(request: NextRequest) {
 
         // Forward the request to the backend server
         const backendUrl =
-            process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        const response = await fetch(`${backendUrl}/api/meditation`, {
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        const response = await fetch(`${backendUrl}/meditation`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -31,6 +31,11 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(data);
     } catch (error: any) {
         console.error("Meditations API error:", error);
+        console.error("Error details:", {
+            message: error.message,
+            cause: error.cause,
+            stack: error.stack,
+        });
         return NextResponse.json(
             { error: error.message || "Failed to get meditations" },
             { status: 500 }
