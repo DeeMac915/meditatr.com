@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
@@ -13,6 +13,7 @@ export default function SignIn() {
     const [loading, setLoading] = useState(false);
     const { signIn } = useAuth();
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -20,7 +21,9 @@ export default function SignIn() {
 
         try {
             await signIn(email, password);
-            router.push("/dashboard");
+            // Redirect to returnUrl if present, otherwise go to dashboard
+            const returnUrl = searchParams.get("returnUrl") || "/dashboard";
+            router.push(returnUrl);
         } catch (error) {
             console.error("Sign in error:", error);
         } finally {

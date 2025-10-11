@@ -34,7 +34,7 @@ interface BackgroundAudioOption {
 }
 
 export default function CreateMeditationPage() {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState<FormData>({
@@ -113,7 +113,7 @@ export default function CreateMeditationPage() {
 
         if (!user) {
             toast.error("Please sign in to create a meditation");
-            router.push("/auth/signin");
+            router.push("/auth/signin?returnUrl=/create");
             return;
         }
 
@@ -145,6 +145,16 @@ export default function CreateMeditationPage() {
         }
     };
 
+    // Show loading spinner while checking authentication
+    if (authLoading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+                <div className="spinner w-12 h-12"></div>
+            </div>
+        );
+    }
+
+    // Show sign-in prompt if not authenticated
     if (!user) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
@@ -156,7 +166,9 @@ export default function CreateMeditationPage() {
                         Please sign in to create your personalized meditation
                     </p>
                     <button
-                        onClick={() => router.push("/auth/signin")}
+                        onClick={() =>
+                            router.push("/auth/signin?returnUrl=/create")
+                        }
                         className="btn-primary"
                     >
                         Sign In

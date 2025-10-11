@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
@@ -19,6 +19,7 @@ export default function SignUp() {
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const { signUp } = useAuth();
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -74,7 +75,9 @@ export default function SignUp() {
 
         try {
             await signUp(formData.email, formData.password, formData.name);
-            router.push("/dashboard");
+            // Redirect to returnUrl if present, otherwise go to dashboard
+            const returnUrl = searchParams.get("returnUrl") || "/dashboard";
+            router.push(returnUrl);
         } catch (error) {
             console.error("Sign up error:", error);
         } finally {
