@@ -75,7 +75,7 @@ Please create a ${duration}-minute guided meditation script that:
 Format the script with clear sections and timing cues. Make it deeply personal and therapeutic.`;
 
         const completion = await openai.chat.completions.create({
-            model: "gpt-4",
+            model: "gpt-3.5-turbo-0125",
             messages: [
                 {
                     role: "system",
@@ -179,7 +179,7 @@ Modifications:
 Please provide a new version that maintains the core therapeutic elements while incorporating the requested changes.`;
 
         const completion = await openai.chat.completions.create({
-            model: "gpt-4",
+            model: "gpt-3.5-turbo-0125",
             messages: [
                 {
                     role: "system",
@@ -215,7 +215,103 @@ Please provide a new version that maintains the core therapeutic elements while 
     }
 });
 
-// Process meditation (generate voice and audio)
+// Background processing function
+const processmeditationInBackground = async (
+    meditationId,
+    userEmail,
+    userPhone
+) => {
+    try {
+        console.log(
+            `🔄 Starting background processing for meditation ${meditationId}`
+        );
+
+        const meditation = await Meditation.findById(meditationId);
+        if (!meditation) {
+            console.error("Meditation not found for processing:", meditationId);
+            return;
+        }
+
+        // Update status to processing
+        meditation.status = "processing";
+        await meditation.save();
+
+        // Generate voice using ElevenLabs
+        console.log("🎙️ Generating voice...");
+        const voiceFileUrl = await generateVoice(
+            meditation.script.final,
+            meditation.inputData.voicePreference
+        );
+
+        meditation.audio.voiceFileUrl = voiceFileUrl;
+        await meditation.save();
+
+        // Mix with background audio
+        console.log("🎵 Mixing audio...");
+        const finalAudioUrl = await mixAudio(
+            voiceFileUrl,
+            meditation.inputData.backgroundAudio,
+            meditation.inputData.duration
+        );
+
+        meditation.audio.finalAudioUrl = finalAudioUrl;
+        meditation.status = "completed";
+        await meditation.save();
+
+        console.log(`✅ Meditation processing completed: ${meditationId}`);
+
+        // Send delivery notifications (non-blocking)
+        try {
+            const emailResult = await sendEmail(userEmail, meditation);
+            if (emailResult) {
+                meditation.delivery.emailSent = true;
+                meditation.delivery.emailSentAt = new Date();
+                console.log("✓ Email delivery successful");
+            } else {
+                console.warn(
+                    "✗ Email delivery failed (check SendGrid configuration)"
+                );
+            }
+        } catch (emailError) {
+            console.error("Email delivery error:", emailError.message);
+        }
+
+        if (userPhone) {
+            try {
+                const smsResult = await sendSMS(userPhone, meditation);
+                if (smsResult) {
+                    meditation.delivery.smsSent = true;
+                    meditation.delivery.smsSentAt = new Date();
+                    console.log("✓ SMS delivery successful");
+                } else {
+                    console.warn(
+                        "✗ SMS delivery failed (check Twilio configuration)"
+                    );
+                }
+            } catch (smsError) {
+                console.error("SMS delivery error:", smsError.message);
+            }
+        }
+
+        await meditation.save();
+    } catch (error) {
+        console.error("❌ Background processing error:", error);
+
+        // Update meditation status to failed
+        try {
+            const meditation = await Meditation.findById(meditationId);
+            if (meditation) {
+                meditation.status = "failed";
+                meditation.error = error.message;
+                await meditation.save();
+            }
+        } catch (updateError) {
+            console.error("Failed to update meditation status:", updateError);
+        }
+    }
+};
+
+// Process meditation (generate voice and audio) - ASYNC
 router.post("/:id/process", authenticateToken, async (req, res) => {
     try {
         const meditation = await Meditation.findOne({
@@ -229,63 +325,34 @@ router.post("/:id/process", authenticateToken, async (req, res) => {
 
         if (meditation.status !== "script_generated") {
             return res.status(400).json({
-                error: "Meditation must have a generated script first",
+                error: `Meditation must have a generated script first. Current status: ${meditation.status}`,
             });
         }
 
-        // Update status to processing
-        meditation.status = "voice_generated";
-        await meditation.save();
-
-        // Generate voice using ElevenLabs
-        const voiceFileUrl = await generateVoice(
-            meditation.script.final,
-            meditation.inputData.voicePreference
-        );
-
-        meditation.audio.voiceFileUrl = voiceFileUrl;
-        meditation.status = "audio_mixed";
-        await meditation.save();
-
-        // Mix with background audio
-        const finalAudioUrl = await mixAudio(
-            voiceFileUrl,
-            meditation.inputData.backgroundAudio,
-            meditation.inputData.duration
-        );
-
-        meditation.audio.finalAudioUrl = finalAudioUrl;
-        meditation.status = "completed";
-        await meditation.save();
-
-        // Send delivery notifications
-        try {
-            await sendEmail(req.userDoc.email, meditation);
-            meditation.delivery.emailSent = true;
-            meditation.delivery.emailSentAt = new Date();
-        } catch (emailError) {
-            console.error("Email delivery error:", emailError);
+        // Check if payment is completed
+        if (!meditation.payment || meditation.payment.status !== "completed") {
+            return res.status(400).json({
+                error: "Payment must be completed before processing",
+            });
         }
 
-        if (req.userDoc.phoneNumber) {
-            try {
-                await sendSMS(req.userDoc.phoneNumber, meditation);
-                meditation.delivery.smsSent = true;
-                meditation.delivery.smsSentAt = new Date();
-            } catch (smsError) {
-                console.error("SMS delivery error:", smsError);
-            }
-        }
+        // Start background processing (don't await - return immediately)
+        setImmediate(() => {
+            processmeditationInBackground(
+                meditation._id,
+                req.userDoc.email,
+                req.userDoc.phoneNumber
+            );
+        });
 
-        await meditation.save();
-
+        // Return immediately with processing status
         res.json({
             success: true,
+            message:
+                "Meditation processing started. This will take 2-5 minutes.",
             meditation: {
                 id: meditation._id,
-                status: meditation.status,
-                audioUrl: meditation.audio.finalAudioUrl,
-                delivery: meditation.delivery,
+                status: "processing",
             },
         });
     } catch (error) {
@@ -293,10 +360,6 @@ router.post("/:id/process", authenticateToken, async (req, res) => {
 
         // Update status to failed
         const meditation = await Meditation.findById(req.params.id);
-        if (meditation) {
-            meditation.status = "failed";
-            await meditation.save();
-        }
 
         res.status(500).json({ error: "Failed to process meditation" });
     }

@@ -95,8 +95,20 @@ router.post("/stripe/confirm", authenticateToken, async (req, res) => {
             paymentIntentId
         );
 
-        if (paymentIntent.status !== "succeeded") {
+        // For MVP testing: Allow confirmation even if payment hasn't been processed through Stripe
+        // In production, remove this and require paymentIntent.status === "succeeded"
+        const isTestMode = process.env.NODE_ENV !== "production";
+
+        if (!isTestMode && paymentIntent.status !== "succeeded") {
             return res.status(400).json({ error: "Payment not completed" });
+        }
+
+        // In test mode, log the actual status for debugging
+        if (isTestMode) {
+            console.log(
+                "Test mode: Allowing payment confirmation with status:",
+                paymentIntent.status
+            );
         }
 
         // Find meditation and update payment status

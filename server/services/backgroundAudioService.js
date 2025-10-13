@@ -20,7 +20,6 @@ const uploadBackgroundAudio = async (filePath, audioType) => {
             Key: fileName,
             Body: fs.readFileSync(filePath),
             ContentType: "audio/mpeg",
-            ACL: "public-read",
         };
 
         const uploadResult = await s3.upload(uploadParams).promise();

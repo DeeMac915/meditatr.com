@@ -21,7 +21,6 @@ async function uploadToS3(audioBuffer, key) {
             Key: key,
             Body: audioBuffer,
             ContentType: "audio/mpeg",
-            ACL: "public-read", // Make the file publicly accessible
             Metadata: {
                 "uploaded-at": new Date().toISOString(),
             },
@@ -88,7 +87,6 @@ async function uploadBackgroundTrack(fileBuffer, trackName) {
             Key: key,
             Body: fileBuffer,
             ContentType: "audio/mpeg",
-            ACL: "public-read",
         };
 
         const result = await s3.upload(params).promise();

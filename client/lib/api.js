@@ -56,6 +56,7 @@ export const meditationAPI = {
     updateScript: (id, script) =>
         api.put(`/meditation/${id}/script`, { script }),
     rewriteScript: (id, data) => api.post(`/meditation/${id}/rewrite`, data),
+    // Meditation processing now returns immediately and processes in background
     processMeditation: (id) => api.post(`/meditation/${id}/process`),
     getMeditations: (params) => api.get("/meditation", { params }),
     getMeditation: (id) => api.get(`/meditation/${id}`),

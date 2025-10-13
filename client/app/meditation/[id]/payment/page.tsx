@@ -127,15 +127,17 @@ export default function PaymentPage() {
 
     const processMeditation = async () => {
         try {
+            // Start processing (returns immediately)
             await meditationAPI.processMeditation(id);
-            toast.success(
-                "Your meditation is being processed! You will receive it via email and SMS."
-            );
+
+            toast.success("Processing started! Redirecting you now...");
+
+            // Redirect to completion page which will poll for status
             router.push(`/meditation/${id}/complete`);
         } catch (error) {
             console.error("Meditation processing error:", error);
             toast.error(
-                "Failed to process meditation. Please contact support."
+                "Failed to start meditation processing. Please contact support."
             );
         }
     };

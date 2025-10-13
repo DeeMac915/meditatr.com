@@ -18,6 +18,8 @@ import toast from "react-hot-toast";
 interface Meditation {
     _id: string;
     title: string;
+    status: string;
+    error?: string;
     inputData: {
         duration: number;
         voicePreference: string;
@@ -38,6 +40,7 @@ export default function CompletePage() {
     const { user } = useAuth();
     const [meditation, setMeditation] = useState<Meditation | null>(null);
     const [loading, setLoading] = useState(true);
+    const [processing, setProcessing] = useState(false);
 
     useEffect(() => {
         if (id && user) {
@@ -48,7 +51,24 @@ export default function CompletePage() {
     const fetchMeditation = async () => {
         try {
             const response = await meditationAPI.getMeditation(id);
-            setMeditation(response.data.meditation);
+            const med = response.data.meditation;
+            setMeditation(med);
+
+            // If still processing, continue polling
+            if (med.status === "processing") {
+                setProcessing(true);
+                setTimeout(fetchMeditation, 3000); // Poll every 3 seconds
+            } else if (med.status === "completed") {
+                setProcessing(false);
+                if (loading) {
+                    toast.success("Your meditation is ready! 🎉");
+                }
+            } else if (med.status === "failed") {
+                setProcessing(false);
+                toast.error(
+                    "Meditation processing failed. Please contact support."
+                );
+            }
         } catch (error) {
             console.error("Fetch meditation error:", error);
             toast.error("Failed to load meditation");
@@ -93,6 +113,157 @@ export default function CompletePage() {
                     >
                         Back to Dashboard
                     </button>
+                </div>
+            </div>
+        );
+    }
+
+    // Show failed view
+    if (meditation.status === "failed") {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-12">
+                        <h1 className="text-3xl font-bold text-red-900 mb-4">
+                            Processing Failed ❌
+                        </h1>
+                        <p className="text-gray-600 text-lg">
+                            We encountered an error while creating your
+                            meditation
+                        </p>
+                    </div>
+
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-8 mb-8">
+                        <div className="text-center">
+                            <h2 className="text-xl font-semibold text-red-900 mb-4">
+                                Error Details
+                            </h2>
+                            <p className="text-red-700 mb-6">
+                                {meditation.error ||
+                                    "An unknown error occurred during processing."}
+                            </p>
+                            <div className="space-x-4">
+                                <button
+                                    onClick={() => router.push("/dashboard")}
+                                    className="btn-primary"
+                                >
+                                    Back to Dashboard
+                                </button>
+                                <button
+                                    onClick={() => router.push("/create")}
+                                    className="bg-white text-primary-600 border border-primary-600 px-6 py-3 rounded-lg hover:bg-primary-50"
+                                >
+                                    Try Again
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+                        <h3 className="font-semibold text-yellow-900 mb-2">
+                            Need Help?
+                        </h3>
+                        <p className="text-yellow-800">
+                            If this issue persists, please contact our support
+                            team with meditation ID:{" "}
+                            <strong>{meditation._id}</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Show processing view
+    if (processing || meditation.status === "processing") {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-12">
+                        <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                            Creating Your Meditation ✨
+                        </h1>
+                        <p className="text-gray-600 text-lg">
+                            Please wait while we generate your personalized
+                            meditation...
+                        </p>
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+                        <div className="flex flex-col items-center">
+                            <Loader2 className="w-16 h-16 animate-spin text-primary-600 mb-6" />
+
+                            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                                Processing in Progress
+                            </h2>
+
+                            <p className="text-gray-600 mb-8 text-center max-w-md">
+                                We're generating your voice narration, mixing it
+                                with background audio, and preparing everything
+                                for delivery. This typically takes 2-5 minutes.
+                            </p>
+
+                            <div className="w-full max-w-md space-y-4">
+                                <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg">
+                                    <div className="w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center">
+                                        <span className="text-blue-700 font-bold">
+                                            1
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-900">
+                                            Voice Generation
+                                        </p>
+                                        <p className="text-sm text-gray-600">
+                                            Creating AI narration from your
+                                            script
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg">
+                                    <div className="w-8 h-8 rounded-full bg-purple-200 flex items-center justify-center">
+                                        <span className="text-purple-700 font-bold">
+                                            2
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-900">
+                                            Audio Mixing
+                                        </p>
+                                        <p className="text-sm text-gray-600">
+                                            Combining voice with background
+                                            music
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg">
+                                    <div className="w-8 h-8 rounded-full bg-green-200 flex items-center justify-center">
+                                        <span className="text-green-700 font-bold">
+                                            3
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-900">
+                                            Final Delivery
+                                        </p>
+                                        <p className="text-sm text-gray-600">
+                                            Preparing email and SMS delivery
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <p className="text-sm text-yellow-800 text-center">
+                                    💡 <strong>Tip:</strong> You can safely
+                                    leave this page. We'll email and text you
+                                    when your meditation is ready!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         );

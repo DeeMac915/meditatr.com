@@ -75,6 +75,7 @@ const meditationSchema = new mongoose.Schema({
         enum: [
             "pending",
             "script_generated",
+            "processing",
             "voice_generated",
             "audio_mixed",
             "completed",
@@ -82,10 +83,13 @@ const meditationSchema = new mongoose.Schema({
         ],
         default: "pending",
     },
+    error: {
+        type: String,
+    },
     payment: {
         amount: {
             type: Number,
-            required: true,
+            required: false,
         },
         currency: {
             type: String,
@@ -94,11 +98,11 @@ const meditationSchema = new mongoose.Schema({
         paymentMethod: {
             type: String,
             enum: ["stripe", "paypal"],
-            required: true,
+            required: false,
         },
         paymentId: {
             type: String,
-            required: true,
+            required: false,
         },
         status: {
             type: String,

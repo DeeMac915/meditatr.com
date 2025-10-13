@@ -161,7 +161,14 @@ const sendEmail = async (email, meditation) => {
         return true;
     } catch (error) {
         console.error("Email sending error:", error);
-        throw new Error("Failed to send email");
+        console.error("SendGrid error details:", error.response?.body);
+
+        // Don't throw error - log it and continue
+        // This allows meditation processing to complete even if email fails
+        console.warn(
+            "Email delivery failed but meditation was processed successfully"
+        );
+        return false;
     }
 };
 
@@ -192,7 +199,13 @@ Find a quiet space and enjoy your meditation!
         return sms.sid;
     } catch (error) {
         console.error("SMS sending error:", error);
-        throw new Error("Failed to send SMS");
+
+        // Don't throw error - log it and continue
+        // This allows meditation processing to complete even if SMS fails
+        console.warn(
+            "SMS delivery failed but meditation was processed successfully"
+        );
+        return false;
     }
 };
 
@@ -318,7 +331,11 @@ const sendWelcomeEmail = async (email, name) => {
         return true;
     } catch (error) {
         console.error("Welcome email sending error:", error);
-        throw new Error("Failed to send welcome email");
+        console.error("SendGrid error details:", error.response?.body);
+
+        // Don't throw error - log it and continue
+        console.warn("Welcome email delivery failed");
+        return false;
     }
 };
 
