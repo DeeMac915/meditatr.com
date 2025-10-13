@@ -278,9 +278,12 @@ export default function Dashboard() {
                         <div className="space-y-4">
                             {(meditations || [])
                                 .slice(0, 5)
-                                .map((meditation) => (
+                                .map((meditation, index) => (
                                     <div
-                                        key={meditation.id}
+                                        key={
+                                            meditation.id ||
+                                            `meditation-${index}`
+                                        }
                                         className="meditation-card"
                                     >
                                         <div className="meditation-card-header">
@@ -403,9 +406,12 @@ export default function Dashboard() {
                             <div className="space-y-3">
                                 {(meditations || [])
                                     .slice(0, 3)
-                                    .map((meditation) => (
+                                    .map((meditation, index) => (
                                         <div
-                                            key={meditation.id}
+                                            key={
+                                                meditation.id ||
+                                                `recent-${index}`
+                                            }
                                             className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                                         >
                                             <div>
