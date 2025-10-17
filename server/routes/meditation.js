@@ -314,8 +314,15 @@ const processmeditationInBackground = async (
 // Process meditation (generate voice and audio) - ASYNC
 router.post("/:id/process", authenticateToken, async (req, res) => {
     try {
+        const { id } = req.params;
+
+        // Validate meditation ID
+        if (!id || id === "undefined" || id === "null") {
+            return res.status(400).json({ error: "Invalid meditation ID" });
+        }
+
         const meditation = await Meditation.findOne({
-            _id: req.params.id,
+            _id: id,
             userId: req.userDoc._id,
         });
 
@@ -401,8 +408,15 @@ router.get("/", authenticateToken, async (req, res) => {
 // Get single meditation
 router.get("/:id", authenticateToken, async (req, res) => {
     try {
+        const { id } = req.params;
+
+        // Validate meditation ID
+        if (!id || id === "undefined" || id === "null") {
+            return res.status(400).json({ error: "Invalid meditation ID" });
+        }
+
         const meditation = await Meditation.findOne({
-            _id: req.params.id,
+            _id: id,
             userId: req.userDoc._id,
         }).lean();
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { paymentAPI } from "@/lib/api";
+import { paymentAPI, meditationAPI } from "@/lib/api";
 import { CheckCircle, Loader2, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -24,6 +24,7 @@ export default function PayPalSuccessPage() {
 
         const paymentId = searchParams.get("paymentId");
         const payerId = searchParams.get("PayerID");
+        const meditationId = searchParams.get("meditationId");
 
         if (!paymentId || !payerId) {
             setStatus("error");
@@ -31,19 +32,41 @@ export default function PayPalSuccessPage() {
             return;
         }
 
-        executePayment(paymentId, payerId);
+        if (!meditationId) {
+            setStatus("error");
+            setErrorMessage("Missing meditation information");
+            return;
+        }
+
+        executePayment(paymentId, payerId, meditationId);
     }, [user, searchParams, router]);
 
-    const executePayment = async (paymentId: string, payerId: string) => {
+    const executePayment = async (
+        paymentId: string,
+        payerId: string,
+        meditationId: string
+    ) => {
         try {
             await paymentAPI.executePayPalPayment(paymentId, payerId);
             setStatus("success");
             toast.success("Payment completed successfully!");
 
-            // Redirect to meditation processing after 2 seconds
-            setTimeout(() => {
-                router.push("/dashboard");
-            }, 2000);
+            // Process the meditation
+            try {
+                await meditationAPI.processMeditation(meditationId);
+                toast.success("Processing started! Redirecting you now...");
+
+                // Redirect to meditation completion page
+                setTimeout(() => {
+                    router.push(`/meditation/${meditationId}/complete`);
+                }, 2000);
+            } catch (processError) {
+                console.error("Meditation processing error:", processError);
+                // Still redirect to dashboard even if processing fails
+                setTimeout(() => {
+                    router.push("/dashboard");
+                }, 2000);
+            }
         } catch (error) {
             console.error("PayPal payment execution error:", error);
             setStatus("error");

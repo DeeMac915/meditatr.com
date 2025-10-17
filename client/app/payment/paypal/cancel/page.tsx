@@ -1,10 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AlertCircle, ArrowLeft } from "lucide-react";
 
 export default function PayPalCancelPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const meditationId = searchParams.get("meditationId");
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
@@ -24,12 +26,18 @@ export default function PayPalCancelPage() {
                     >
                         Back to Dashboard
                     </button>
-                    <button
-                        onClick={() => router.back()}
-                        className="btn-outline"
-                    >
-                        Try Again
-                    </button>
+                    {meditationId && (
+                        <button
+                            onClick={() =>
+                                router.push(
+                                    `/meditation/${meditationId}/payment`
+                                )
+                            }
+                            className="btn-outline"
+                        >
+                            Try Again
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
