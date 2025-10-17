@@ -14,6 +14,18 @@ import {
     Shield,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { loadStripe } from "@stripe/stripe-js";
+import {
+    Elements,
+    CardElement,
+    useStripe,
+    useElements,
+} from "@stripe/react-stripe-js";
+
+// Initialize Stripe
+const stripePromise = loadStripe(
+    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+);
 
 interface Meditation {
     _id: string;
@@ -25,6 +37,135 @@ interface Meditation {
         backgroundAudio: string;
     };
 }
+
+// Stripe Payment Form Component
+const StripePaymentForm = ({
+    meditationId,
+    onPaymentSuccess,
+}: {
+    meditationId: string;
+    onPaymentSuccess: () => void;
+}) => {
+    const stripe = useStripe();
+    const elements = useElements();
+    const [processing, setProcessing] = useState(false);
+
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault();
+
+        if (!stripe || !elements) {
+            return;
+        }
+
+        setProcessing(true);
+
+        try {
+            // Create payment intent
+            const response = await paymentAPI.createStripeIntent(meditationId);
+            const { clientSecret } = response.data;
+
+            // Confirm payment with Stripe
+            const cardElement = elements.getElement(CardElement);
+            if (!cardElement) {
+                throw new Error("Card element not found");
+            }
+
+            const { error, paymentIntent } = await stripe.confirmCardPayment(
+                clientSecret,
+                {
+                    payment_method: {
+                        card: cardElement,
+                        billing_details: {
+                            name: "Meditation User",
+                        },
+                    },
+                }
+            );
+
+            if (error) {
+                toast.error(`Payment failed: ${error.message}`);
+            } else if (paymentIntent.status === "succeeded") {
+                // Confirm payment on our backend
+                await paymentAPI.confirmStripePayment(paymentIntent.id);
+                toast.success(
+                    "Payment successful! Processing your meditation..."
+                );
+                onPaymentSuccess();
+            }
+        } catch (error) {
+            console.error("Payment error:", error);
+            toast.error("Payment failed. Please try again.");
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="p-4 border border-gray-200 rounded-lg">
+                <CardElement
+                    options={{
+                        style: {
+                            base: {
+                                fontSize: "16px",
+                                color: "#424770",
+                                "::placeholder": {
+                                    color: "#aab7c4",
+                                },
+                            },
+                            invalid: {
+                                color: "#9e2146",
+                            },
+                        },
+                    }}
+                />
+            </div>
+
+            {/* Optional: Add billing details */}
+            <div className="space-y-3">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Billing Name
+                    </label>
+                    <input
+                        type="text"
+                        placeholder="Full name"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        defaultValue="Test User"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        ZIP Code
+                    </label>
+                    <input
+                        type="text"
+                        placeholder="12345"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        defaultValue="10001"
+                    />
+                </div>
+            </div>
+            <button
+                type="submit"
+                disabled={!stripe || processing}
+                className="w-full bg-primary-600 text-white py-4 px-6 rounded-lg text-lg font-semibold hover:bg-primary-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+            >
+                {processing ? (
+                    <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <span>Processing Payment...</span>
+                    </>
+                ) : (
+                    <>
+                        <Lock className="w-5 h-5" />
+                        <span>Pay $4.99</span>
+                    </>
+                )}
+            </button>
+        </form>
+    );
+};
 
 export default function PaymentPage() {
     const { id } = useParams<{ id: string }>();
@@ -56,39 +197,8 @@ export default function PaymentPage() {
         }
     };
 
-    const handleStripePayment = async () => {
-        setProcessing(true);
-        try {
-            const response = await paymentAPI.createStripeIntent(id);
-            setStripeClientSecret(response.data.clientSecret);
-
-            // In a real implementation, you would integrate with Stripe Elements here
-            // For this MVP, we'll simulate the payment process
-            toast.success(
-                "Stripe payment intent created. Redirecting to payment..."
-            );
-
-            // Simulate payment success after 2 seconds
-            setTimeout(async () => {
-                try {
-                    await paymentAPI.confirmStripePayment(
-                        response.data.paymentIntentId
-                    );
-                    toast.success(
-                        "Payment successful! Processing your meditation..."
-                    );
-                    await processMeditation();
-                } catch (error) {
-                    console.error("Payment confirmation error:", error);
-                    toast.error("Payment failed. Please try again.");
-                }
-            }, 2000);
-        } catch (error) {
-            console.error("Stripe payment error:", error);
-            toast.error("Failed to create payment. Please try again.");
-        } finally {
-            setProcessing(false);
-        }
+    const handlePaymentSuccess = async () => {
+        await processMeditation();
     };
 
     const handlePayPalPayment = async () => {
@@ -97,30 +207,13 @@ export default function PaymentPage() {
             const response = await paymentAPI.createPayPalPayment(id);
             setPaypalApprovalUrl(response.data.approvalUrl);
 
-            // In a real implementation, you would redirect to PayPal here
-            toast.success("PayPal payment created. Redirecting to PayPal...");
+            toast.success("Redirecting to PayPal...");
 
-            // Simulate PayPal payment success after 2 seconds
-            setTimeout(async () => {
-                try {
-                    // Simulate PayPal payment execution
-                    await paymentAPI.executePayPalPayment(
-                        response.data.paymentId,
-                        "simulated_payer_id"
-                    );
-                    toast.success(
-                        "Payment successful! Processing your meditation..."
-                    );
-                    await processMeditation();
-                } catch (error) {
-                    console.error("PayPal payment error:", error);
-                    toast.error("Payment failed. Please try again.");
-                }
-            }, 2000);
+            // Redirect to PayPal
+            window.location.href = response.data.approvalUrl;
         } catch (error) {
             console.error("PayPal payment error:", error);
             toast.error("Failed to create payment. Please try again.");
-        } finally {
             setProcessing(false);
         }
     };
@@ -319,28 +412,33 @@ export default function PaymentPage() {
                             </label>
                         </div>
 
-                        {/* Payment Button */}
-                        <button
-                            onClick={
-                                paymentMethod === "stripe"
-                                    ? handleStripePayment
-                                    : handlePayPalPayment
-                            }
-                            disabled={processing}
-                            className="w-full bg-primary-600 text-white py-4 px-6 rounded-lg text-lg font-semibold hover:bg-primary-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                        >
-                            {processing ? (
-                                <>
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                    <span>Processing Payment...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Lock className="w-5 h-5" />
-                                    <span>Pay $4.99</span>
-                                </>
-                            )}
-                        </button>
+                        {/* Payment Form */}
+                        {paymentMethod === "stripe" ? (
+                            <Elements stripe={stripePromise}>
+                                <StripePaymentForm
+                                    meditationId={id}
+                                    onPaymentSuccess={handlePaymentSuccess}
+                                />
+                            </Elements>
+                        ) : (
+                            <button
+                                onClick={handlePayPalPayment}
+                                disabled={processing}
+                                className="w-full bg-primary-600 text-white py-4 px-6 rounded-lg text-lg font-semibold hover:bg-primary-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                            >
+                                {processing ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        <span>Redirecting to PayPal...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Lock className="w-5 h-5" />
+                                        <span>Pay with PayPal</span>
+                                    </>
+                                )}
+                            </button>
+                        )}
 
                         {/* Security Notice */}
                         <div className="mt-6 flex items-center space-x-2 text-sm text-gray-500">

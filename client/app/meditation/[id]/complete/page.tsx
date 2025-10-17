@@ -41,6 +41,19 @@ export default function CompletePage() {
     const [meditation, setMeditation] = useState<Meditation | null>(null);
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
+    const [pollingTimer, setPollingTimer] = useState<NodeJS.Timeout | null>(
+        null
+    );
+
+    // Cleanup timer on unmount
+    useEffect(() => {
+        return () => {
+            if (pollingTimer) {
+                clearTimeout(pollingTimer);
+            }
+        };
+    }, [pollingTimer]);
 
     useEffect(() => {
         if (id && user) {
@@ -54,25 +67,77 @@ export default function CompletePage() {
             const med = response.data.meditation;
             setMeditation(med);
 
-            // If still processing, continue polling
+            // If still processing, continue polling with exponential backoff
             if (med.status === "processing") {
                 setProcessing(true);
-                setTimeout(fetchMeditation, 3000); // Poll every 3 seconds
+
+                // Stop polling after 10 minutes (20 retries)
+                if (retryCount >= 20) {
+                    setProcessing(false);
+                    toast.error(
+                        "Processing is taking longer than expected. Please check back later."
+                    );
+                    return;
+                }
+
+                // Exponential backoff: 3s, 5s, 8s, 10s, then 10s intervals
+                const delay =
+                    retryCount < 3
+                        ? 3000
+                        : retryCount < 5
+                        ? 5000
+                        : retryCount < 8
+                        ? 8000
+                        : 10000;
+
+                const timer = setTimeout(() => {
+                    setRetryCount((prev) => prev + 1);
+                    fetchMeditation();
+                }, delay);
+
+                setPollingTimer(timer);
             } else if (med.status === "completed") {
                 setProcessing(false);
+                if (pollingTimer) {
+                    clearTimeout(pollingTimer);
+                    setPollingTimer(null);
+                }
                 if (loading) {
                     toast.success("Your meditation is ready! 🎉");
                 }
             } else if (med.status === "failed") {
                 setProcessing(false);
+                if (pollingTimer) {
+                    clearTimeout(pollingTimer);
+                    setPollingTimer(null);
+                }
                 toast.error(
                     "Meditation processing failed. Please contact support."
                 );
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Fetch meditation error:", error);
-            toast.error("Failed to load meditation");
-            router.push("/dashboard");
+
+            // If it's a rate limit error, stop polling
+            if (error.response?.status === 429) {
+                setProcessing(false);
+                toast.error(
+                    "Too many requests. Please refresh the page to check status."
+                );
+                return;
+            }
+
+            // For other errors, try a few more times with longer delays
+            if (retryCount < 5) {
+                const timer = setTimeout(() => {
+                    setRetryCount((prev) => prev + 1);
+                    fetchMeditation();
+                }, 10000); // 10 second delay for errors
+                setPollingTimer(timer);
+            } else {
+                toast.error("Failed to load meditation");
+                router.push("/dashboard");
+            }
         } finally {
             setLoading(false);
         }
@@ -256,11 +321,22 @@ export default function CompletePage() {
                             </div>
 
                             <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                <p className="text-sm text-yellow-800 text-center">
+                                <p className="text-sm text-yellow-800 text-center mb-4">
                                     💡 <strong>Tip:</strong> You can safely
                                     leave this page. We'll email and text you
                                     when your meditation is ready!
                                 </p>
+                                <div className="flex justify-center">
+                                    <button
+                                        onClick={() => {
+                                            setRetryCount(0);
+                                            fetchMeditation();
+                                        }}
+                                        className="text-sm bg-white text-primary-600 border border-primary-600 px-4 py-2 rounded-lg hover:bg-primary-50 transition-colors duration-200"
+                                    >
+                                        🔄 Check Status Manually
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

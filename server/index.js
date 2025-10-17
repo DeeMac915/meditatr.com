@@ -24,6 +24,15 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+// More lenient rate limiting for meditation status checks
+const meditationStatusLimiter = rateLimit({
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    max: 60, // limit each IP to 60 requests per 5 minutes (1 per 5 seconds)
+    message:
+        "Too many meditation status requests. Please wait before checking again.",
+    skipSuccessfulRequests: true, // Don't count successful requests
+});
+
 // CORS configuration
 app.use(
     cors({
@@ -41,7 +50,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/meditation", meditationRoutes);
+app.use("/api/meditation", meditationStatusLimiter, meditationRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/admin", adminRoutes);
 

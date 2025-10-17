@@ -190,8 +190,12 @@ router.post("/paypal/create", authenticateToken, async (req, res) => {
                 payment_method: "paypal",
             },
             redirect_urls: {
-                return_url: `${process.env.NEXT_PUBLIC_API_URL}/payment/paypal/success`,
-                cancel_url: `${process.env.NEXT_PUBLIC_API_URL}/payment/paypal/cancel`,
+                return_url: `${
+                    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+                }/payment/paypal/success`,
+                cancel_url: `${
+                    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+                }/payment/paypal/cancel`,
             },
             transactions: [
                 {
