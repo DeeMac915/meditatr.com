@@ -1,6 +1,8 @@
 import express from "express";
 import { auth } from "../config/firebase.js";
 import User from "../models/User.js";
+import Meditation from "../models/Meditation.js";
+import Payment from "../models/Payment.js";
 import { authenticateToken } from "../middleware/auth.js";
 
 const router = express.Router();
@@ -16,6 +18,19 @@ router.get("/profile", authenticateToken, async (req, res) => {
             return res.status(404).json({ error: "User not found" });
         }
 
+        // Calculate user statistics
+        const [meditationCount, totalSpentResult] = await Promise.all([
+            // Count total meditations
+            Meditation.countDocuments({ userId: user._id }),
+            // Calculate total spent from completed payments
+            Payment.aggregate([
+                { $match: { userId: user._id, status: "completed" } },
+                { $group: { _id: null, total: { $sum: "$amount" } } },
+            ]),
+        ]);
+
+        const totalSpent = totalSpentResult[0]?.total || 0;
+
         res.json({
             success: true,
             user: {
@@ -27,6 +42,8 @@ router.get("/profile", authenticateToken, async (req, res) => {
                 subscription: user.subscription,
                 createdAt: user.createdAt,
             },
+            totalMeditations: meditationCount,
+            totalSpent: totalSpent,
         });
     } catch (error) {
         console.error("Get profile error:", error);

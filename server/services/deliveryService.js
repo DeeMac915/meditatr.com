@@ -14,6 +14,12 @@ const twilioClient = twilio(
  * Send meditation via email
  */
 const sendEmail = async (email, meditation) => {
+    // Skip email if SendGrid is not configured
+    if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_FROM_EMAIL) {
+        console.log("📧 Email delivery skipped: SendGrid not configured");
+        return { success: true, method: "email", skipped: true };
+    }
+
     try {
         const msg = {
             to: email,
@@ -176,6 +182,16 @@ const sendEmail = async (email, meditation) => {
  * Send meditation via SMS
  */
 const sendSMS = async (phoneNumber, meditation) => {
+    // Skip SMS if Twilio is not configured
+    if (
+        !process.env.TWILIO_ACCOUNT_SID ||
+        !process.env.TWILIO_AUTH_TOKEN ||
+        !process.env.TWILIO_PHONE_NUMBER
+    ) {
+        console.log("📱 SMS delivery skipped: Twilio not configured");
+        return { success: true, method: "sms", skipped: true };
+    }
+
     try {
         const message = `🧘‍♀️ Your personalized meditation "${meditation.title}" is ready! 
 
@@ -213,6 +229,12 @@ Find a quiet space and enjoy your meditation!
  * Send welcome email to new users
  */
 const sendWelcomeEmail = async (email, name) => {
+    // Skip email if SendGrid is not configured
+    if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_FROM_EMAIL) {
+        console.log("📧 Welcome email skipped: SendGrid not configured");
+        return { success: true, method: "email", skipped: true };
+    }
+
     try {
         const msg = {
             to: email,
