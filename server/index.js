@@ -38,7 +38,7 @@ app.use(
     cors({
         origin:
             process.env.NODE_ENV === "production"
-                ? ["https://yourdomain.com"]
+                ? ["https://meditatr.com", "https://www.meditatr.com"]
                 : ["http://localhost:3000"],
         credentials: true,
     })
