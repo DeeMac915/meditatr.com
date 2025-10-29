@@ -38,7 +38,11 @@ app.use(
     cors({
         origin:
             process.env.NODE_ENV === "production"
-                ? ["https://meditatr.com", "https://www.meditatr.com"]
+                ? [
+                      "https://meditatr.com",
+                      "https://www.meditatr.com",
+                      "https://main.d1z07iz630e9lp.amplifyapp.com",
+                  ]
                 : ["http://localhost:3000"],
         credentials: true,
     })
