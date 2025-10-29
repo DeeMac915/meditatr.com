@@ -12,13 +12,36 @@ import {
 import { auth } from "@/lib/firebase";
 import toast from "react-hot-toast";
 
+interface UserPreferences {
+	defaultVoice: string;
+	defaultDuration: number;
+	defaultBackgroundAudio: string;
+}
+
+interface UserProfile {
+	id: string;
+	email: string;
+	name: string;
+	phoneNumber?: string;
+	preferences?: UserPreferences;
+	subscription?: { type?: string };
+	createdAt?: string;
+}
+
+interface ProfileUpdateInput {
+	name?: string;
+	phoneNumber?: string;
+	preferences?: UserPreferences;
+}
+
 interface AuthContextType {
-    user: User | null;
-    loading: boolean;
-    signIn: (email: string, password: string) => Promise<void>;
-    signUp: (email: string, password: string, name: string) => Promise<void>;
-    logout: () => Promise<void>;
-    updateUserProfile: (name: string) => Promise<void>;
+	user: User | null;
+	loading: boolean;
+	userProfile: UserProfile | null;
+	signIn: (email: string, password: string) => Promise<void>;
+	signUp: (email: string, password: string, name: string) => Promise<void>;
+	logout: () => Promise<void>;
+	updateUserProfile: (input: ProfileUpdateInput) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,15 +49,37 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+	const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            setUser(user);
-            setLoading(false);
-        });
+	useEffect(() => {
+		const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+			setUser(firebaseUser);
+			try {
+				if (firebaseUser) {
+					const token = await firebaseUser.getIdToken();
+					const response = await fetch("/api/auth/profile", {
+						method: "GET",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: `Bearer ${token}`,
+						},
+					});
+					if (response.ok) {
+						const data = await response.json();
+						setUserProfile(data.user);
+					} else {
+						setUserProfile(null);
+					}
+				} else {
+					setUserProfile(null);
+				}
+			} finally {
+				setLoading(false);
+			}
+		});
 
-        return () => unsubscribe();
-    }, []);
+		return () => unsubscribe();
+	}, []);
 
     const signIn = async (email: string, password: string) => {
         try {
@@ -108,13 +153,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const updateUserProfile = async (name: string) => {
+	const updateUserProfile = async (input: ProfileUpdateInput) => {
         try {
             if (!user) throw new Error("No user logged in");
 
-            await updateProfile(user, { displayName: name });
+			// Update Firebase display name if provided
+			if (input.name) {
+				await updateProfile(user, { displayName: input.name });
+			}
 
-            // Update user profile in backend
+			// Update user profile in backend
             const token = await user.getIdToken();
             const response = await fetch("/api/auth/profile", {
                 method: "PUT",
@@ -122,14 +170,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ name }),
+				body: JSON.stringify(input),
             });
 
             if (!response.ok) {
                 throw new Error("Failed to update profile");
             }
 
-            toast.success("Profile updated successfully");
+			const data = await response.json();
+			setUserProfile(data.user);
+			toast.success("Profile updated successfully");
         } catch (error: any) {
             console.error("Update profile error:", error);
             toast.error(error.message || "Failed to update profile");
@@ -137,14 +187,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const value = {
-        user,
-        loading,
-        signIn,
-        signUp,
-        logout,
-        updateUserProfile,
-    };
+	const value = {
+		user,
+		loading,
+		userProfile,
+		signIn,
+		signUp,
+		logout,
+		updateUserProfile,
+	};
 
     return (
         <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

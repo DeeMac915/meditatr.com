@@ -1,21 +1,9 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "react-hot-toast";
 
-const inter = Inter({
-    subsets: ["latin"],
-    display: "swap",
-    fallback: [
-        "system-ui",
-        "-apple-system",
-        "BlinkMacSystemFont",
-        "Segoe UI",
-        "Roboto",
-        "sans-serif",
-    ],
-});
+// Load Inter via <link> at runtime to avoid build-time font fetching
 
 export const metadata: Metadata = {
     title: "Meditation MVP - AI-Created Guided Meditations",
@@ -44,7 +32,24 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en">
-            <body className={inter.className}>
+            <head>
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link
+                    rel="preconnect"
+                    href="https://fonts.gstatic.com"
+                    crossOrigin="anonymous"
+                />
+                <link
+                    href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"
+                    rel="stylesheet"
+                />
+            </head>
+            <body
+                style={{
+                    fontFamily:
+                        "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                }}
+            >
                 <AuthProvider>
                     {children}
                     <Toaster
