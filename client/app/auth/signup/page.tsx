@@ -121,7 +121,10 @@ export default function SignUp() {
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         {/* Name */}
                         <div>
-                            <label htmlFor="name" className="form-label">
+                            <label
+                                htmlFor="name"
+                                className="block mb-1 font-medium text-gray-700"
+                            >
                                 Full name
                             </label>
                             <div className="mt-1 relative">
@@ -136,8 +139,10 @@ export default function SignUp() {
                                     required
                                     value={formData.name}
                                     onChange={handleChange}
-                                    className={`input-field pl-10 ${
-                                        errors.name ? "border-red-500" : ""
+                                    className={`block w-full border rounded-md px-4 py-2 pl-10 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600 ${
+                                        errors.name
+                                            ? "border-red-500"
+                                            : "border-gray-300"
                                     }`}
                                     placeholder="Enter your full name"
                                 />
@@ -149,7 +154,10 @@ export default function SignUp() {
 
                         {/* Email */}
                         <div>
-                            <label htmlFor="email" className="form-label">
+                            <label
+                                htmlFor="email"
+                                className="block mb-1 font-medium text-gray-700"
+                            >
                                 Email address
                             </label>
                             <div className="mt-1 relative">
@@ -164,8 +172,10 @@ export default function SignUp() {
                                     required
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className={`input-field pl-10 ${
-                                        errors.email ? "border-red-500" : ""
+                                    className={`block w-full border rounded-md px-4 py-2 pl-10 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600 ${
+                                        errors.email
+                                            ? "border-red-500"
+                                            : "border-gray-300"
                                     }`}
                                     placeholder="Enter your email"
                                 />
@@ -179,7 +189,10 @@ export default function SignUp() {
 
                         {/* Password */}
                         <div>
-                            <label htmlFor="password" className="form-label">
+                            <label
+                                htmlFor="password"
+                                className="block mb-1 font-medium text-gray-700"
+                            >
                                 Password
                             </label>
                             <div className="mt-1 relative">
@@ -194,8 +207,10 @@ export default function SignUp() {
                                     required
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className={`input-field pl-10 pr-10 ${
-                                        errors.password ? "border-red-500" : ""
+                                    className={`block w-full border rounded-md px-4 py-2 pl-10 pr-10 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600 ${
+                                        errors.password
+                                            ? "border-red-500"
+                                            : "border-gray-300"
                                     }`}
                                     placeholder="Create a password"
                                 />
@@ -224,7 +239,7 @@ export default function SignUp() {
                         <div>
                             <label
                                 htmlFor="confirmPassword"
-                                className="form-label"
+                                className="block mb-1 font-medium text-gray-700"
                             >
                                 Confirm password
                             </label>
@@ -244,10 +259,10 @@ export default function SignUp() {
                                     required
                                     value={formData.confirmPassword}
                                     onChange={handleChange}
-                                    className={`input-field pl-10 pr-10 ${
+                                    className={`block w-full border rounded-md px-4 py-2 pl-10 pr-10 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600 ${
                                         errors.confirmPassword
                                             ? "border-red-500"
-                                            : ""
+                                            : "border-gray-300"
                                     }`}
                                     placeholder="Confirm your password"
                                 />
@@ -309,7 +324,7 @@ export default function SignUp() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full btn-primary py-3 text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full mt-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-base py-3 rounded-md shadow focus:outline-none focus:ring-2 focus:ring-primary-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {loading ? (
                                     <div className="flex items-center justify-center">

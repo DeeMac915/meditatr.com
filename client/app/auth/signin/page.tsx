@@ -82,7 +82,7 @@ export default function SignIn() {
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="input-field pl-10"
+                                    className="block w-full border border-gray-300 rounded-md px-4 py-2 pl-10 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600"
                                     placeholder="Enter your email"
                                 />
                             </div>
@@ -107,7 +107,7 @@ export default function SignIn() {
                                     onChange={(e) =>
                                         setPassword(e.target.value)
                                     }
-                                    className="input-field pl-10 pr-10"
+                                    className="block w-full border border-gray-300 rounded-md px-4 py-2 pl-10 pr-10 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600"
                                     placeholder="Enter your password"
                                 />
                                 <button
@@ -158,7 +158,7 @@ export default function SignIn() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full btn-primary py-3 text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full mt-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-base py-3 rounded-md shadow focus:outline-none focus:ring-2 focus:ring-primary-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {loading ? (
                                     <div className="flex items-center justify-center">
