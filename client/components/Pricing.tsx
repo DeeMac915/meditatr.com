@@ -80,9 +80,9 @@ export default function Pricing() {
                             <div className="text-center">
                                 <a
                                     href="/auth/signup"
-                                    className="btn-primary text-lg px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                                    className="btn-primary flex items-center justify-center text-lg px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                                 >
-                                    <Zap className="w-5 h-5 mr-2" />
+                                    <Zap className="w-5 h-5 mr-2 text-white" />
                                     Create Your First Meditation
                                 </a>
                                 <p className="text-gray-500 text-sm mt-4">

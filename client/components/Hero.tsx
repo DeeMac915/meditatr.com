@@ -37,14 +37,14 @@ export default function Hero() {
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
                         <Link
                             href="/auth/signup"
-                            className="btn-primary bg-white text-primary-600 hover:bg-gray-50 text-lg px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                            className="btn-primary flex justify-center items-center bg-white text-primary-600 hover:bg-gray-50 text-lg px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                         >
                             <Sparkles className="w-5 h-5 mr-2" />
                             Create Your First Meditation
                         </Link>
                         <Link
                             href="/#how-it-works"
-                            className="btn-outline border-white text-white hover:bg-white hover:text-primary-600 text-lg px-8 py-4 rounded-xl font-semibold"
+                            className="btn-outline flex justify-center items-center border-white text-white hover:bg-white hover:text-primary-600 text-lg px-8 py-4 rounded-xl font-semibold"
                         >
                             <Play className="w-5 h-5 mr-2" />
                             See How It Works
