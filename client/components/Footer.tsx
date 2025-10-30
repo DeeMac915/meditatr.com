@@ -164,7 +164,7 @@ export default function Footer() {
                         <div className="flex items-center">
                             <Mail className="w-5 h-5 text-primary-400 mr-3" />
                             <span className="text-gray-400">
-                                support@meditationmvp.com
+                                info@meditatr.com
                             </span>
                         </div>
                         <div className="flex items-center">
@@ -185,7 +185,7 @@ export default function Footer() {
                 {/* Bottom */}
                 <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
                     <p className="text-gray-400 text-sm">
-                        © 2024 Meditation MVP. All rights reserved.
+                        © 2025 Meditation MVP. All rights reserved.
                     </p>
                     <p className="text-gray-400 text-sm flex items-center mt-4 md:mt-0">
                         Made with{" "}
