@@ -52,6 +52,16 @@ app.use(
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
+app.get("/health", (req, res) => {
+    res.status(200).json({
+        status: "OK",
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        version: process.version,
+    });
+});
+
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/meditation", meditationStatusLimiter, meditationRoutes);
