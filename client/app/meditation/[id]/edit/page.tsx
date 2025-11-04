@@ -342,7 +342,7 @@ export default function EditMeditationPage() {
                         className="flex items-center justify-center space-x-2 bg-primary-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary-700 transition-colors duration-200"
                     >
                         <Check className="w-5 h-5" />
-                        <span>Proceed to Payment ($4.99)</span>
+                        <span>Proceed to Payment ($29.90)</span>
                     </button>
                 </div>
 

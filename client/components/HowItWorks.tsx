@@ -59,7 +59,7 @@ export default function HowItWorks() {
                 "Pay securely with Stripe or PayPal. Our pay-per-meditation model means you only pay for what you create - no subscriptions required.",
             details: [
                 "Secure payment processing with Stripe & PayPal",
-                "Pay-per-meditation pricing ($4.99 per meditation)",
+                "Pay-per-meditation pricing ($29.90 per meditation)",
                 "No subscriptions or recurring charges",
                 "Instant payment confirmation",
             ],

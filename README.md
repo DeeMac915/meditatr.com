@@ -33,7 +33,7 @@ A full-stack web application that allows users to create deeply personalized gui
 -   **Audio Mixing**: FFMPEG to mix TTS voice with background tracks
 -   **Multi-Channel Delivery**: Email (SendGrid), SMS (Twilio), and in-browser playback
 -   **Meditation Library**: Save and replay all meditations
--   **Pay-Per-Meditation**: Stripe and PayPal integration ($4.99 per meditation)
+-   **Pay-Per-Meditation**: Stripe and PayPal integration ($29.90 per meditation)
 -   **Admin Dashboard**: Track usage, delivery stats, API usage, and payments
 
 ## 🎯 User Flow
@@ -42,7 +42,7 @@ A full-stack web application that allows users to create deeply personalized gui
 2. **Create Meditation**: Fill out detailed form with goals, mood, challenges, etc.
 3. **AI Script Generation**: System generates personalized meditation script
 4. **Edit & Customize**: User can edit script or request AI rewrites
-5. **Payment**: Pay $4.99 for meditation processing
+5. **Payment**: Pay $29.90 for meditation processing
 6. **Audio Generation**: Script converted to voice using ElevenLabs
 7. **Audio Mixing**: Voice mixed with selected background audio
 8. **Delivery**: Final audio sent via email, SMS, and available in browser

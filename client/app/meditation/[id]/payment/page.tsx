@@ -159,7 +159,7 @@ const StripePaymentForm = ({
                 ) : (
                     <>
                         <Lock className="w-5 h-5" />
-                        <span>Pay $4.99</span>
+                        <span>Pay $29.90</span>
                     </>
                 )}
             </button>
@@ -346,7 +346,7 @@ export default function PaymentPage() {
                                     Total
                                 </span>
                                 <span className="text-2xl font-bold text-primary-600">
-                                    $4.99
+                                    $29.90
                                 </span>
                             </div>
                             <p className="text-sm text-gray-500 mt-2">

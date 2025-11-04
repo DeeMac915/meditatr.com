@@ -35,8 +35,8 @@ export default function TermsPage() {
                         </h2>
                         <p className="text-gray-700 mb-6">
                             All meditation purchases are final. We offer a
-                            pay-per-meditation model at $4.99 per meditation. No
-                            refunds are provided once the meditation has been
+                            pay-per-meditation model at $29.90 per meditation.
+                            No refunds are provided once the meditation has been
                             generated.
                         </p>
 

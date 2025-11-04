@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Heart, Mail, Phone, MapPin } from "lucide-react";
 
 export default function Footer() {
@@ -11,11 +12,13 @@ export default function Footer() {
                     {/* Brand */}
                     <div className="col-span-1 md:col-span-2">
                         <div className="flex items-center mb-4">
-                            <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center">
-                                <span className="text-white font-bold text-lg">
-                                    🧘
-                                </span>
-                            </div>
+                            <Image
+                                src="/images/logo.png"
+                                alt="Meditatr Logo"
+                                width={32}
+                                height={32}
+                                className="w-8 h-8 object-contain"
+                            />
                             <span className="ml-2 text-xl font-bold">
                                 Meditatr
                             </span>
