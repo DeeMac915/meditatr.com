@@ -97,7 +97,7 @@ export default function SignUp() {
                             </span>
                         </div>
                         <span className="ml-3 text-2xl font-bold text-gray-900">
-                            Meditation MVP
+                            Meditatr
                         </span>
                     </div>
                 </div>

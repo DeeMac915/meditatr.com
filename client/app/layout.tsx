@@ -6,7 +6,7 @@ import { Toaster } from "react-hot-toast";
 // Load Inter via <link> at runtime to avoid build-time font fetching
 
 export const metadata: Metadata = {
-    title: "Meditation MVP - AI-Created Guided Meditations",
+    title: "Meditatr - AI-Created Guided Meditations",
     description:
         "Create personalized guided meditations with AI. Get tailored meditation scripts, realistic voice generation, and calming background music.",
     keywords: [
@@ -16,9 +16,9 @@ export const metadata: Metadata = {
         "wellness",
         "mindfulness",
     ],
-    authors: [{ name: "Meditation MVP Team" }],
+    authors: [{ name: "Meditatr Team" }],
     openGraph: {
-        title: "Meditation MVP - AI-Created Guided Meditations",
+        title: "Meditatr - AI-Created Guided Meditations",
         description: "Create personalized guided meditations with AI",
         type: "website",
         locale: "en_US",

@@ -17,7 +17,7 @@ export default function Footer() {
                                 </span>
                             </div>
                             <span className="ml-2 text-xl font-bold">
-                                Meditation MVP
+                                Meditatr
                             </span>
                         </div>
                         <p className="text-gray-400 mb-6 max-w-md">
@@ -185,7 +185,7 @@ export default function Footer() {
                 {/* Bottom */}
                 <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
                     <p className="text-gray-400 text-sm">
-                        © 2025 Meditation MVP. All rights reserved.
+                        © 2025 Meditatr. All rights reserved.
                     </p>
                     <p className="text-gray-400 text-sm flex items-center mt-4 md:mt-0">
                         Made with{" "}

@@ -1,6 +1,6 @@
 export default function PrivacyPage() {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12">
+        <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 py-12">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="bg-white rounded-xl shadow-lg p-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-8">
@@ -72,7 +72,7 @@ export default function PrivacyPage() {
                         </h2>
                         <p className="text-gray-700 mb-6">
                             If you have any questions about this Privacy Policy,
-                            please contact us at privacy@meditationmvp.com.
+                            please contact us at privacy@meditatr.com.
                         </p>
                     </div>
                 </div>

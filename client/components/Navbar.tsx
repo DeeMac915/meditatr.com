@@ -29,13 +29,13 @@ export default function Navbar() {
                         <Link href="/" className="flex items-center">
                             <Image
                                 src="/images/logo.png"
-                                alt="Meditation MVP Logo"
+                                alt="Meditatr Logo"
                                 width={32}
                                 height={32}
                                 className="w-8 h-8 object-contain"
                             />
                             <span className="ml-2 text-xl font-bold text-gray-900">
-                                Meditation MVP
+                                Meditatr
                             </span>
                         </Link>
                     </div>
