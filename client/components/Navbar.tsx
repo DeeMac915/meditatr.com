@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { Menu, X, User, LogOut } from "lucide-react";
 
@@ -26,11 +27,13 @@ export default function Navbar() {
                     {/* Logo */}
                     <div className="flex-shrink-0">
                         <Link href="/" className="flex items-center">
-                            <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center">
-                                <span className="text-white font-bold text-lg">
-                                    🧘
-                                </span>
-                            </div>
+                            <Image
+                                src="/images/logo.png"
+                                alt="Meditation MVP Logo"
+                                width={32}
+                                height={32}
+                                className="w-8 h-8 object-contain"
+                            />
                             <span className="ml-2 text-xl font-bold text-gray-900">
                                 Meditation MVP
                             </span>
