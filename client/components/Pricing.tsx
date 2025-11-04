@@ -43,7 +43,9 @@ export default function Pricing() {
                                     Personalized Meditation
                                 </span>
                             </div>
-                            <div className="text-5xl font-bold mb-2">$4.99</div>
+                            <div className="text-5xl font-bold mb-2">
+                                $29.90
+                            </div>
                             <div className="text-primary-100 text-lg">
                                 per meditation
                             </div>

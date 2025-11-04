@@ -17,7 +17,7 @@ paypal.configure({
 });
 
 // Meditation pricing
-const MEDITATION_PRICE = 4.99; // $4.99 per meditation
+const MEDITATION_PRICE = 29.9; // $29.90 per meditation
 
 /**
  * Create Stripe payment intent
