@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Heart, Mail, Phone, MapPin } from "lucide-react";
 
 export default function Footer() {
@@ -12,16 +11,11 @@ export default function Footer() {
                     {/* Brand */}
                     <div className="col-span-1 md:col-span-2">
                         <div className="flex items-center mb-4">
-                            <Image
+                            <img
                                 src="/images/logo.png"
                                 alt="Meditatr Logo"
-                                width={32}
-                                height={32}
-                                className="w-8 h-8 object-contain"
+                                className="h-14 w-auto object-contain"
                             />
-                            <span className="ml-2 text-xl font-bold">
-                                Meditatr
-                            </span>
                         </div>
                         <p className="text-gray-400 mb-6 max-w-md">
                             Create deeply personalized guided meditations with
