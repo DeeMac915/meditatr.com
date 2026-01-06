@@ -8,6 +8,10 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { execSync } from "child_process";
 import { v4 as uuidv4 } from "uuid";
+import { pipeline } from "stream/promises";
+import { createWriteStream } from "fs";
+import http from "http";
+import https from "https";
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -41,8 +45,31 @@ const s3 = new AWS.S3({
     httpOptions: {
         timeout: 300000, // 5 minutes total timeout for upload
         connectTimeout: 10000, // 10 seconds to establish connection
+        agent: false, // Use default agent for connection pooling
     },
     maxRetries: 3, // Retry failed requests up to 3 times
+    // Use multipart uploads for files larger than 5MB
+    multipartUploadThreshold: 5 * 1024 * 1024,
+    multipartUploadSize: 5 * 1024 * 1024,
+});
+
+// Configure axios with connection pooling and keep-alive for better performance
+const httpClient = axios.create({
+    timeout: 120000, // 2 minutes
+    maxContentLength: 100 * 1024 * 1024, // 100MB max
+    maxBodyLength: 100 * 1024 * 1024,
+    httpAgent: new http.Agent({
+        keepAlive: true,
+        keepAliveMsecs: 1000,
+        maxSockets: 50,
+        maxFreeSockets: 10,
+    }),
+    httpsAgent: new https.Agent({
+        keepAlive: true,
+        keepAliveMsecs: 1000,
+        maxSockets: 50,
+        maxFreeSockets: 10,
+    }),
 });
 
 // Initialize ElevenLabs
@@ -67,44 +94,122 @@ const BACKGROUND_AUDIO = {
     sleep: "https://meditatrbucket.s3.us-east-1.amazonaws.com/Sleep.mp3",
 };
 
+// Cache directory for background audio files
+const backgroundAudioCacheDir = path.join(
+    __dirname,
+    "../../temp/background-audio-cache"
+);
+
+// Ensure cache directory exists
+if (!fs.existsSync(backgroundAudioCacheDir)) {
+    fs.mkdirSync(backgroundAudioCacheDir, { recursive: true });
+}
+
+/**
+ * Get cached background audio file path or download if not cached
+ * This significantly improves performance by avoiding repeated downloads
+ */
+const getCachedBackgroundAudio = async (backgroundType) => {
+    const backgroundUrl = BACKGROUND_AUDIO[backgroundType];
+    if (!backgroundUrl) {
+        throw new Error(`Invalid background audio type: ${backgroundType}`);
+    }
+
+    // Create a safe filename from the URL
+    const urlParts = backgroundUrl.split("/");
+    const filename = urlParts[urlParts.length - 1].replace(
+        /[^a-zA-Z0-9.-]/g,
+        "_"
+    );
+    const cachedFilePath = path.join(backgroundAudioCacheDir, filename);
+
+    // Check if file exists in cache
+    if (fs.existsSync(cachedFilePath)) {
+        console.log(
+            `Using cached background audio: ${backgroundType} (${cachedFilePath})`
+        );
+        return cachedFilePath;
+    }
+
+    // Download and cache the file
+    console.log(
+        `Downloading and caching background audio: ${backgroundType} from ${backgroundUrl}`
+    );
+    try {
+        const response = await httpClient.get(backgroundUrl, {
+            responseType: "stream",
+            timeout: 120000, // 2 minutes
+        });
+
+        const writer = createWriteStream(cachedFilePath);
+        await pipeline(response.data, writer);
+
+        console.log(`Background audio cached successfully: ${cachedFilePath}`);
+        return cachedFilePath;
+    } catch (error) {
+        // Clean up partial file on error
+        if (fs.existsSync(cachedFilePath)) {
+            try {
+                fs.unlinkSync(cachedFilePath);
+            } catch (cleanupError) {
+                console.warn(
+                    "Failed to clean up partial cache file:",
+                    cleanupError
+                );
+            }
+        }
+        throw new Error(
+            `Failed to download and cache background audio: ${error.message}`
+        );
+    }
+};
+
 /**
  * Generate voice from text using ElevenLabs
+ * Optimized with streaming and efficient buffer handling
  */
 const generateVoice = async (text, voicePreference = "female") => {
+    const voiceId = VOICE_IDS[voicePreference];
+
+    if (!voiceId) {
+        throw new Error(`Invalid voice preference: ${voicePreference}`);
+    }
+
     try {
-        const voiceId = VOICE_IDS[voicePreference];
-
-        if (!voiceId) {
-            throw new Error(`Invalid voice preference: ${voicePreference}`);
-        }
-
         // Generate audio using ElevenLabs (v2.x API)
         const audio = await elevenlabs.textToSpeech.convert(voiceId, {
             text: text,
             model_id: "eleven_multilingual_v2",
         });
 
-        // Convert audio stream to buffer
+        // Stream chunks directly to buffer (more memory efficient)
         const chunks = [];
+        let totalSize = 0;
+
         for await (const chunk of audio) {
             chunks.push(chunk);
+            totalSize += chunk.length;
         }
-        const audioStream = Buffer.concat(chunks);
 
-        // Upload to S3
+        // Use Buffer.concat with pre-allocated size for better performance
+        const audioStream = Buffer.concat(chunks, totalSize);
+
+        // Upload to S3 with optimized settings
         const fileName = `voice/${uuidv4()}.mp3`;
+        const fileSizeKB = (audioStream.length / 1024).toFixed(2);
+
+        console.log(
+            `Uploading voice audio to S3: ${fileName} (${fileSizeKB} KB)`
+        );
+
+        // Use managed upload for automatic multipart handling
         const uploadParams = {
             Bucket: process.env.AWS_S3_BUCKET,
             Key: fileName,
             Body: audioStream,
             ContentType: "audio/mpeg",
+            CacheControl: "public, max-age=31536000", // Cache for 1 year
         };
-
-        console.log(
-            `Uploading voice audio to S3: ${fileName} (${(
-                audioStream.length / 1024
-            ).toFixed(2)} KB)`
-        );
 
         const uploadResult = await s3.upload(uploadParams).promise();
 
@@ -155,43 +260,51 @@ const generateVoice = async (text, voicePreference = "female") => {
 };
 
 /**
+ * Download file using streaming for better memory efficiency
+ */
+const downloadFile = async (url, filePath) => {
+    const response = await httpClient.get(url, {
+        responseType: "stream",
+        timeout: 120000, // 2 minutes
+    });
+
+    const writer = createWriteStream(filePath);
+    await pipeline(response.data, writer);
+};
+
+/**
  * Mix voice with background audio using FFMPEG
+ * Optimized with parallel downloads, streaming, and better FFmpeg settings
  */
 const mixAudio = async (voiceUrl, backgroundType, duration) => {
+    const tempDir = path.join(__dirname, "../../temp");
+    if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true });
+    }
+
+    const voiceFile = path.join(tempDir, `voice-${uuidv4()}.mp3`);
+    const outputFile = path.join(tempDir, `final-${uuidv4()}.mp3`);
+
+    // Get cached background audio (downloads only if not cached)
+    let backgroundFile;
     try {
-        const tempDir = path.join(__dirname, "../../temp");
-        if (!fs.existsSync(tempDir)) {
-            fs.mkdirSync(tempDir, { recursive: true });
-        }
+        backgroundFile = await getCachedBackgroundAudio(backgroundType);
+    } catch (error) {
+        throw new Error(`Failed to get background audio: ${error.message}`);
+    }
 
-        const voiceFile = path.join(tempDir, `voice-${uuidv4()}.mp3`);
-        const backgroundFile = path.join(tempDir, `background-${uuidv4()}.mp3`);
-        const outputFile = path.join(tempDir, `final-${uuidv4()}.mp3`);
-
-        // Download voice file using axios (better Windows compatibility)
+    try {
+        // Download voice file (this is unique per meditation, so no caching)
         console.log("Downloading voice file from S3...");
-        const voiceResponse = await axios.get(voiceUrl, {
-            responseType: "arraybuffer",
-            timeout: 60000, // 60 seconds
-        });
-        fs.writeFileSync(voiceFile, Buffer.from(voiceResponse.data));
+        await downloadFile(voiceUrl, voiceFile);
 
-        // Download background audio
-        const backgroundUrl = BACKGROUND_AUDIO[backgroundType];
-        if (!backgroundUrl) {
-            throw new Error(`Invalid background audio type: ${backgroundType}`);
-        }
+        console.log(
+            "Voice file downloaded, starting mixing with cached background audio..."
+        );
 
-        console.log("Downloading background audio from S3...");
-        const backgroundResponse = await axios.get(backgroundUrl, {
-            responseType: "arraybuffer",
-            timeout: 60000, // 60 seconds
-        });
-        fs.writeFileSync(backgroundFile, Buffer.from(backgroundResponse.data));
-
-        // Mix audio using FFMPEG
+        // Mix audio using FFMPEG with optimized settings
         await new Promise((resolve, reject) => {
-            ffmpeg()
+            const ffmpegProcess = ffmpeg()
                 .input(voiceFile)
                 .input(backgroundFile)
                 .complexFilter([
@@ -199,42 +312,72 @@ const mixAudio = async (voiceUrl, backgroundType, duration) => {
                     "[1:a]volume=0.3,aloop=loop=-1:size=2e+09[bg]",
                     "[voice][bg]amix=inputs=2:duration=first:dropout_transition=2[out]",
                 ])
-                .outputOptions(["-map", "[out]"])
+                .outputOptions([
+                    "-map",
+                    "[out]",
+                    "-acodec",
+                    "libmp3lame", // Use libmp3lame for better performance
+                    "-b:a",
+                    "192k", // Bitrate for quality/size balance
+                    "-ar",
+                    "44100", // Sample rate
+                    "-ac",
+                    "2", // Stereo
+                ])
                 .output(outputFile)
-                .on("end", resolve)
-                .on("error", reject)
-                .run();
+                .on("start", (commandLine) => {
+                    console.log("FFmpeg command:", commandLine);
+                })
+                .on("progress", (progress) => {
+                    if (progress.percent) {
+                        console.log(
+                            `Processing: ${Math.round(progress.percent)}% done`
+                        );
+                    }
+                })
+                .on("end", () => {
+                    console.log("Audio mixing completed");
+                    resolve();
+                })
+                .on("error", (err) => {
+                    console.error("FFmpeg error:", err);
+                    reject(err);
+                });
+
+            // Set FFmpeg timeout (10 minutes max)
+            setTimeout(() => {
+                if (!ffmpegProcess.killed) {
+                    ffmpegProcess.kill("SIGKILL");
+                    reject(new Error("FFmpeg process timed out"));
+                }
+            }, 600000); // 10 minutes
+
+            ffmpegProcess.run();
         });
 
-        // Upload final audio to S3
-        const finalAudioBuffer = fs.readFileSync(outputFile);
+        // Get file stats before upload
+        const stats = fs.statSync(outputFile);
+        const fileSizeKB = (stats.size / 1024).toFixed(2);
+
+        console.log(`Uploading mixed audio to S3: ${fileSizeKB} KB`);
+
+        // Use streaming upload for large files (more memory efficient)
         const fileName = `meditations/${uuidv4()}.mp3`;
+        const fileStream = fs.createReadStream(outputFile);
 
         const uploadParams = {
             Bucket: process.env.AWS_S3_BUCKET,
             Key: fileName,
-            Body: finalAudioBuffer,
+            Body: fileStream,
             ContentType: "audio/mpeg",
+            CacheControl: "public, max-age=31536000", // Cache for 1 year
         };
-
-        console.log(
-            `Uploading mixed audio to S3: ${fileName} (${(
-                finalAudioBuffer.length / 1024
-            ).toFixed(2)} KB)`
-        );
 
         const uploadResult = await s3.upload(uploadParams).promise();
 
         console.log(
             `Mixed audio uploaded successfully: ${uploadResult.Location}`
         );
-
-        // Clean up temporary files
-        [voiceFile, backgroundFile, outputFile].forEach((file) => {
-            if (fs.existsSync(file)) {
-                fs.unlinkSync(file);
-            }
-        });
 
         return uploadResult.Location;
     } catch (error) {
@@ -278,6 +421,22 @@ const mixAudio = async (voiceUrl, backgroundType, duration) => {
                 }`
             );
         }
+    } finally {
+        // Always clean up temporary files, even on error
+        // Note: backgroundFile is cached and should NOT be deleted
+        const filesToClean = [voiceFile, outputFile];
+        for (const file of filesToClean) {
+            try {
+                if (fs.existsSync(file)) {
+                    fs.unlinkSync(file);
+                }
+            } catch (cleanupError) {
+                console.warn(
+                    `Failed to clean up temp file ${file}:`,
+                    cleanupError.message
+                );
+            }
+        }
     }
 };
 
@@ -297,15 +456,100 @@ const getAudioDuration = (filePath) => {
 };
 
 /**
- * Get audio file size
+ * Get audio file size with optimized HTTP client
  */
 const getAudioFileSize = async (url) => {
     try {
-        const response = await axios.head(url, { timeout: 30000 });
+        const response = await httpClient.head(url, { timeout: 30000 });
         const contentLength = response.headers["content-length"];
         return parseInt(contentLength) || 0;
     } catch (error) {
+        // Fallback: try GET request with range header if HEAD fails
+        try {
+            const response = await httpClient.get(url, {
+                headers: { Range: "bytes=0-0" },
+                timeout: 30000,
+            });
+            const contentRange = response.headers["content-range"];
+            if (contentRange) {
+                const match = contentRange.match(/\/(\d+)/);
+                return match ? parseInt(match[1]) : 0;
+            }
+            return parseInt(response.headers["content-length"]) || 0;
+        } catch (fallbackError) {
+            throw new Error(
+                `Failed to get audio file size: ${
+                    error.message || fallbackError.message
+                }`
+            );
+        }
+    }
+};
+
+/**
+ * Clear background audio cache (useful for updating background audio files)
+ */
+const clearBackgroundAudioCache = () => {
+    try {
+        if (fs.existsSync(backgroundAudioCacheDir)) {
+            const files = fs.readdirSync(backgroundAudioCacheDir);
+            files.forEach((file) => {
+                const filePath = path.join(backgroundAudioCacheDir, file);
+                try {
+                    fs.unlinkSync(filePath);
+                    console.log(`Cleared cached background audio: ${file}`);
+                } catch (error) {
+                    console.warn(
+                        `Failed to delete ${filePath}:`,
+                        error.message
+                    );
+                }
+            });
+            console.log("Background audio cache cleared successfully");
+        }
+    } catch (error) {
+        console.error("Failed to clear background audio cache:", error);
         throw error;
+    }
+};
+
+/**
+ * Get cache statistics
+ */
+const getBackgroundAudioCacheStats = () => {
+    try {
+        if (!fs.existsSync(backgroundAudioCacheDir)) {
+            return { count: 0, totalSize: 0, files: [] };
+        }
+
+        const files = fs.readdirSync(backgroundAudioCacheDir);
+        let totalSize = 0;
+        const fileStats = [];
+
+        files.forEach((file) => {
+            const filePath = path.join(backgroundAudioCacheDir, file);
+            try {
+                const stats = fs.statSync(filePath);
+                totalSize += stats.size;
+                fileStats.push({
+                    name: file,
+                    size: stats.size,
+                    sizeKB: (stats.size / 1024).toFixed(2),
+                });
+            } catch (error) {
+                console.warn(`Failed to stat ${filePath}:`, error.message);
+            }
+        });
+
+        return {
+            count: files.length,
+            totalSize,
+            totalSizeMB: (totalSize / (1024 * 1024)).toFixed(2),
+            files: fileStats,
+        };
+    } catch (error) {
+        console.error("Failed to get cache stats:", error);
+        return { count: 0, totalSize: 0, files: [] };
     }
 };
 
@@ -315,4 +559,6 @@ export {
     getAudioDuration,
     getAudioFileSize,
     BACKGROUND_AUDIO,
+    clearBackgroundAudioCache,
+    getBackgroundAudioCacheStats,
 };

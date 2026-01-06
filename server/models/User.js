@@ -61,4 +61,9 @@ userSchema.pre("save", function (next) {
     next();
 });
 
+// Indexes for efficient queries
+userSchema.index({ firebaseUid: 1 }); // Already unique, but explicit index
+userSchema.index({ email: 1 }); // Already unique, but explicit index
+userSchema.index({ createdAt: -1 }); // For admin queries
+
 export default mongoose.model("User", userSchema);

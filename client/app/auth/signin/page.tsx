@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 
@@ -37,14 +38,14 @@ export default function SignIn() {
                 {/* Logo */}
                 <div className="flex justify-center">
                     <div className="flex items-center">
-                        <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center">
-                            <span className="text-white font-bold text-xl">
-                                🧘
-                            </span>
-                        </div>
-                        <span className="ml-3 text-2xl font-bold text-gray-900">
-                            Meditatr
-                        </span>
+                        <Image
+                            src="/images/logo.png"
+                            alt="Meditatr Logo"
+                            width={250}
+                            height={250}
+                            className="h-12 w-auto object-contain"
+                            priority
+                        />
                     </div>
                 </div>
 

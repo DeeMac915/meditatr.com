@@ -378,16 +378,16 @@ router.get("/", authenticateToken, async (req, res) => {
         const { page = 1, limit = 10 } = req.query;
         const skip = (page - 1) * limit;
 
-        const meditations = await Meditation.find({ userId: req.userDoc._id })
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(parseInt(limit))
-            .select("-script.original -script.edited")
-            .lean();
-
-        const total = await Meditation.countDocuments({
-            userId: req.userDoc._id,
-        });
+        // Use parallel queries for better performance
+        const [meditations, total] = await Promise.all([
+            Meditation.find({ userId: req.userDoc._id })
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(parseInt(limit))
+                .select("-script.original -script.edited -script.final") // Exclude large script field
+                .lean(),
+            Meditation.countDocuments({ userId: req.userDoc._id }),
+        ]);
 
         res.json({
             success: true,
@@ -418,7 +418,9 @@ router.get("/:id", authenticateToken, async (req, res) => {
         const meditation = await Meditation.findOne({
             _id: id,
             userId: req.userDoc._id,
-        }).lean();
+        })
+            .select("-script.original -script.edited") // Only include final script
+            .lean();
 
         if (!meditation) {
             return res.status(404).json({ error: "Meditation not found" });

@@ -1,23 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { Menu, X, User, LogOut } from "lucide-react";
 
-export default function Navbar() {
+const Navbar = memo(function Navbar() {
     const { user, logout } = useAuth();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-    const handleLogout = async () => {
+    const handleLogout = useCallback(async () => {
         try {
             await logout();
             setIsUserMenuOpen(false);
         } catch (error) {
             console.error("Logout error:", error);
         }
-    };
+    }, [logout]);
 
     return (
         <nav className="bg-white shadow-sm border-b border-gray-200">
@@ -26,10 +27,13 @@ export default function Navbar() {
                     {/* Logo */}
                     <div className="flex-shrink-0">
                         <Link href="/" className="flex items-center">
-                            <img
+                            <Image
                                 src="/images/logo.png"
                                 alt="Meditatr Logo"
+                                width={250}
+                                height={250}
                                 className="h-12 w-auto object-contain"
+                                priority
                             />
                         </Link>
                     </div>
@@ -204,4 +208,6 @@ export default function Navbar() {
             )}
         </nav>
     );
-}
+});
+
+export default Navbar;

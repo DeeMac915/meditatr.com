@@ -2,13 +2,15 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import Hero from "@/components/Hero";
-import Features from "@/components/Features";
-import HowItWorks from "@/components/HowItWorks";
-import Pricing from "@/components/Pricing";
-import Footer from "@/components/Footer";
+import { useEffect, lazy, Suspense } from "react";
 import Navbar from "@/components/Navbar";
+
+// Lazy load heavy components for better initial load performance
+const Hero = lazy(() => import("@/components/Hero"));
+const Features = lazy(() => import("@/components/Features"));
+const HowItWorks = lazy(() => import("@/components/HowItWorks"));
+const Pricing = lazy(() => import("@/components/Pricing"));
+const Footer = lazy(() => import("@/components/Footer"));
 
 export default function Home() {
     const { user, loading } = useAuth();
@@ -32,12 +34,16 @@ export default function Home() {
         <div className="min-h-screen bg-white">
             <Navbar />
             <main>
-                <Hero />
-                <Features />
-                <HowItWorks />
-                <Pricing />
+                <Suspense fallback={<div className="min-h-screen" />}>
+                    <Hero />
+                    <Features />
+                    <HowItWorks />
+                    <Pricing />
+                </Suspense>
             </main>
-            <Footer />
+            <Suspense fallback={null}>
+                <Footer />
+            </Suspense>
         </div>
     );
 }

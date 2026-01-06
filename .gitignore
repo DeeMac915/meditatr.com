@@ -111,6 +111,8 @@ firebase-debug.*.log
 *.wav
 *.m4a
 temp-audio/
+# Background audio cache (cached files are reused, not temporary)
+temp/background-audio-cache/
 
 # Uploads
 uploads/

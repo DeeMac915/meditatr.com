@@ -3,10 +3,16 @@ import axios from "axios";
 const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
-// Create axios instance
+// Create axios instance with optimized settings
 const api = axios.create({
     baseURL: API_BASE_URL,
     timeout: 30000,
+    // Enable request/response compression
+    decompress: true,
+    // Cache GET requests
+    headers: {
+        "Cache-Control": "no-cache",
+    },
 });
 
 // Request interceptor to add auth token

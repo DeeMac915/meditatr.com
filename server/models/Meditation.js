@@ -141,8 +141,11 @@ meditationSchema.pre("save", function (next) {
     next();
 });
 
-// Index for efficient queries
-meditationSchema.index({ userId: 1, createdAt: -1 });
-meditationSchema.index({ status: 1 });
+// Indexes for efficient queries
+meditationSchema.index({ userId: 1, createdAt: -1 }); // For user's meditation list
+meditationSchema.index({ status: 1 }); // For status filtering
+meditationSchema.index({ "payment.status": 1 }); // For payment queries
+meditationSchema.index({ createdAt: -1 }); // For admin queries
+meditationSchema.index({ userId: 1, status: 1 }); // Compound index for user status queries
 
 export default mongoose.model("Meditation", meditationSchema);
