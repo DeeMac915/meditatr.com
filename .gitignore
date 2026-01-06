@@ -124,3 +124,6 @@ client/public/workbox-*.js
 client/public/workbox-*.js.map
 client/public/workbox-*.js.LICENSE.txt
 client/public/fallback-*.js
+
+# Server logs
+server/logs/
