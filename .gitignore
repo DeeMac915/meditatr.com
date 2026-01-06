@@ -116,3 +116,11 @@ temp/background-audio-cache/
 
 # Uploads
 uploads/
+
+# PWA generated files (next-pwa generates these during build)
+client/public/sw.js
+client/public/sw.js.map
+client/public/workbox-*.js
+client/public/workbox-*.js.map
+client/public/workbox-*.js.LICENSE.txt
+client/public/fallback-*.js
